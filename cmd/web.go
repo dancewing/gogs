@@ -41,6 +41,7 @@ import (
 	apiv1 "github.com/gogits/gogs/routes/api/v1"
 	"github.com/gogits/gogs/routes/dev"
 	"github.com/gogits/gogs/routes/org"
+	"github.com/gogits/gogs/routes/project"
 	"github.com/gogits/gogs/routes/repo"
 	"github.com/gogits/gogs/routes/user"
 )
@@ -636,6 +637,19 @@ func runWeb(c *cli.Context) error {
 		m.Route("/:reponame/*", "GET,POST", ignSignInAndCsrf, repo.HTTPContexter(), repo.HTTP)
 	})
 	// ***** END: Repository *****
+
+
+
+	m.Group("/projects", func(){
+		m.Get("", project.ListProject)
+		m.Get("/my", reqSignIn, project.ListProject)
+	})
+
+	m.Group("/project", func() {
+		m.Get("/create", project.Create, reqSignIn)
+		m.Post("/create", bindIgnErr(form.CreateProject{}), project.CreatePost, reqSignIn)
+		m.Post("/delete/*", reqSignIn, reqRepoWriter, repo.DeleteBranchPost, reqSignIn)
+	})
 
 	m.Group("/api", func() {
 		apiv1.RegisterRoutes(m)

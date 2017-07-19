@@ -11,7 +11,7 @@
 	<meta name="referrer" content="no-referrer" />
 	<meta name="_csrf" content="{{.CSRFToken}}" />
 	<meta name="_suburl" content="{{AppSubURL}}" />
-	
+
 	<!-- Open Graph Tags -->
 	{{if .PageIsAdmin}}
 	{{else if .PageIsUserProfile}}
@@ -88,10 +88,12 @@
 
 								{{if .IsLogged}}
 									<a class="item{{if .PageIsDashboard}} active{{end}}" href="{{AppSubURL}}/">{{.i18n.Tr "dashboard"}}</a>
+									<a class="item{{if .PageIsHome}} active{{end}}" href="{{AppSubURL}}/projects">{{.i18n.Tr "projects"}}</a>
 									<a class="item{{if .PageIsIssues}} active{{end}}" href="{{AppSubURL}}/issues">{{.i18n.Tr "issues"}}</a>
 									<a class="item{{if .PageIsPulls}} active{{end}}" href="{{AppSubURL}}/pulls">{{.i18n.Tr "pull_requests"}}</a>
 								{{else}}
 									<a class="item{{if .PageIsHome}} active{{end}}" href="{{AppSubURL}}/">{{.i18n.Tr "home"}}</a>
+									<a class="item{{if .PageIsHome}} active{{end}}" href="{{AppSubURL}}/projects">{{.i18n.Tr "projects"}}</a>
 								{{end}}
 
 								<a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubURL}}/explore/repos">{{.i18n.Tr "explore"}}</a>
@@ -110,6 +112,9 @@
 												<i class="octicon octicon-triangle-down"></i>
 											</span>
 											<div class="menu">
+												<a class="item" href="{{AppSubURL}}/project/create">
+													<i class="octicon octicon-plus"></i> {{.i18n.Tr "new_project"}}
+												</a>
 												<a class="item" href="{{AppSubURL}}/repo/create">
 													<i class="octicon octicon-plus"></i> {{.i18n.Tr "new_repo"}}
 												</a>

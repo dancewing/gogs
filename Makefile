@@ -81,3 +81,7 @@ todo:
 # Legacy code should be remove by the time of release
 legacy:
 	grep -rnw "LEGACY" cmd routers models pkg
+
+
+dev_bindata :
+	go-bindata -debug -o=$@ -ignore="\\.DS_Store|README.md|TRANSLATORS" -pkg=bindata conf/...

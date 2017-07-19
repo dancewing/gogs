@@ -603,6 +603,12 @@
 			"revisionTime": "2017-02-19T20:49:11Z"
 		},
 		{
+			"checksumSHA1": "BhAkxEqS34H3sd40IO+XsWpMV5M=",
+			"path": "gopkg.in/oauth2.v3",
+			"revision": "2d34ab7b6095944079dd90706519426d39b75dba",
+			"revisionTime": "2017-06-20T10:36:27Z"
+		},
+		{
 			"checksumSHA1": "6QPjE+qflEBHg+JPJd9e4iQuRAk=",
 			"path": "gopkg.in/redis.v2",
 			"revision": "e6179049628164864e6e84e973cfb56335748dea",

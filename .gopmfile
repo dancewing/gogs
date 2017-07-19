@@ -59,6 +59,7 @@ gopkg.in/ini.v1 = commit:e3c2d47
 gopkg.in/ldap.v2 = commit:8168ee0
 gopkg.in/macaron.v1 = commit:8be5635
 gopkg.in/redis.v2 = commit:e617904
+gopkg.in/oauth2.v3 = commit:2d34ab7
 
 [res]
 include = public|scripts|templates
