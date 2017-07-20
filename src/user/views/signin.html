@@ -9,19 +9,8 @@
             </div>
         </div>
         <hr style="margin-top: 5px;" />
-        <div class="row">
-            <div class="columns large-12">
-                <button data-ng-click="oauth()" class="button large-12  small-12 medium-12">
-                    <img style="width: 30px;" src="/images/gitlab-logo.svg" alt="gitlab.com">&nbsp; with {{host_url}}
-                </button>
-            </div>
-        </div>
-
 
         <form name="signinForm" novalidate data-ng-submit="authenticate()" ng-show="enable_signup">
-            <div class="row" style="margin-bottom: 15px;" ng-show="enable_signup">
-                or with your kanban account
-            </div>
 
             <span class="error" data-ng-show="data.errors.length != 0" data-ng-repeat="error in data.errors">
                 {{error}}

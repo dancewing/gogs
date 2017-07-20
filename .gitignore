@@ -18,3 +18,7 @@ output*
 *.sublime-workspace
 /release
 /node_modules
+public/js/board
+public/fonts/
+public/assets/html/
+public/template/

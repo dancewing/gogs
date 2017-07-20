@@ -21,9 +21,9 @@
                     this.defaultStages = {};
                     this.state = new State();
                     this.counts = {};
-                    this.stages = LabelService.listStages(project.id);
-                    this.priorities = LabelService.listPriorities(project.id);
-                    this.viewLabels = LabelService.listViewLabels(project.id);
+                    this.stages = LabelService.listStages(project.path_with_namespace);
+                    this.priorities = LabelService.listPriorities(project.path_with_namespace);
+                    this.viewLabels = LabelService.listViewLabels(project.path_with_namespace);
                     this.priorityLabels = _.map(this.priorities, 'name');
                     this.stagelabels = _.map(this.stages, 'name');
                     _.each(this.stages, _.bind(function (stage) {

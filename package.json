@@ -1,11 +1,11 @@
 {
-  "name": "kanban",
+  "name": "Gogs",
   "version": "0.0.1",
   "repository": "gitlab.com/leanlabsio/kanban",
   "scripts": {
-      "install": "npm install",
-      "build": "grunt build",
-      "watch": "grunt watch"
+    "install": "npm install",
+    "build": "grunt build",
+    "watch": "grunt watch"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
@@ -20,20 +20,20 @@
   },
   "dependencies": {
     "angular": "=1.5.6",
-    "angular-lodash": "https://github.com/EMSSConsulting/angular-lodash.git#68a726c",
-    "foundation-sites": "5.5.2",
+    "angular-file-upload": "=2.3.4",
     "angular-foundation": "https://github.com/pineconellc/angular-foundation.git#8f3f260",
     "angular-loading-bar": "=0.5.2",
+    "angular-lodash": "https://github.com/EMSSConsulting/angular-lodash.git#68a726c",
     "angular-storage": "=0.0.6",
     "angular-ui-router": "=0.3.0",
     "angularjs-datepicker": "=0.2.15",
     "font-awesome": "=4.6.3",
+    "foundation-sites": "5.5.2",
+    "lodash": "=4.13.1",
     "markdown-it": "=5.0.2",
     "markdown-it-emoji": "=1.1.0",
     "ng-sortable": "=1.3.6",
     "sass-flex-mixin": "=1.0.3",
-    "lodash": "=4.13.1",
-    "twemoji": "=2.1.0",
-    "angular-file-upload": "=2.3.4"
+    "twemoji": "^2.3.0"
   }
 }

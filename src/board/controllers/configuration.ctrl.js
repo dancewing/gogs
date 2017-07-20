@@ -14,7 +14,7 @@
                 $scope.configure = function() {
                     $scope.isSaving = true;
                     $http.post(
-                        '/api/boards/configure',
+                        '/api/v2/repos/' + $stateParams.project_path + '/labels/createKBLabels',
                         {
                             project_id: $stateParams.project_path
                         }

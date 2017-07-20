@@ -141,6 +141,12 @@
 			"revisionTime": "2015-10-14T03:41:01Z"
 		},
 		{
+			"checksumSHA1": "n5qFMLnUu2O5Stw/sDfvxMNV5EU=",
+			"path": "github.com/go-macaron/sockets",
+			"revision": "9e25b74dda32eb1bb82bf8b14e838da19ae5a66d",
+			"revisionTime": "2015-10-14T04:10:17Z"
+		},
+		{
 			"checksumSHA1": "VMRkwnbl0mKWWvK/62CnIlv1oOg=",
 			"path": "github.com/go-macaron/toolbox",
 			"revision": "6766b8f16d1b135b250f09ba4dc4e24ab65b1107",
@@ -205,6 +211,12 @@
 			"path": "github.com/gogits/minwinsvc",
 			"revision": "95be6356811a6fbd4c2981713236971a3ccbb33a",
 			"revisionTime": "2017-03-01T03:54:11Z"
+		},
+		{
+			"checksumSHA1": "8KawKW6FJguwWz5cPvMg/ChmepE=",
+			"path": "github.com/gorilla/websocket",
+			"revision": "a69d9f6de432e2c6b296a947d8a5ee88f68522cf",
+			"revisionTime": "2017-07-18T20:23:41Z"
 		},
 		{
 			"checksumSHA1": "MLO0PyrK2MUO6A7Z9PxWuu43C/A=",

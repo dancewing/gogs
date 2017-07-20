@@ -25,16 +25,24 @@
                         });
                     },
                     authenticate: function (data) {
-                        return $http.post('/api/login', {
-                            _username: data.username,
-                            _password: data.password
+                        return $http.post('/api/v2/login', {
+                            user_name: data.username,
+                            password: data.password
                         }).then(function (result) {
                             store.set('id_token', result.data.token);
                             return store.get('id_token');
                         });
                     },
                     getCurrent: function () {
-                        return store.get('id_token');
+
+                    	if (store.get('current_user')!==null) return store.get('current_user');
+
+						return $http.get('/api/v2/authenticate').then(function (result) {
+							store.set('current_user', result.data.data);
+							return store.get('current_user');
+						});
+
+                    	//return store.get('id_token');
                     },
                     isAuthenticated: function () {
                         return this.getCurrent() !== null;

@@ -13,9 +13,9 @@
         .run([
             '$rootScope', '$state', '$http', 'AuthService', 'store',
             function($rootScope, $state, $http, AuthService, store) {
-                if (AuthService.isAuthenticated()) {
-                    $http.defaults.headers.common['X-KB-Access-Token'] = AuthService.getCurrent();
-                }
+                // if (AuthService.isAuthenticated()) {
+                //     $http.defaults.headers.common['X-KB-Access-Token'] = AuthService.getCurrent();
+                // }
 
                 $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
                     if (!AuthService.authorized(toState)) {

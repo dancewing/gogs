@@ -25,9 +25,9 @@
                 ctrl.uploader.url = '/api/boards/' + board.project.id + '/upload';
             });
 
-            ctrl.uploader.headers = {
-                'X-KB-Access-Token': AuthService.getCurrent()
-            };
+            // ctrl.uploader.headers = {
+            //     'X-KB-Access-Token': AuthService.getCurrent()
+            // };
 
             ctrl.uploader.onProgressItem = function(item) {
                 ctrl.progress = true;

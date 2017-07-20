@@ -10,7 +10,8 @@
         'stage_regexp',
         'UserService',
         'MilestoneService',
-        function($http, $q, $sce, LabelService, WebsocketService, Board, stage_regexp, UserService, MilestoneService) {
+		'AuthService',
+        function($http, $q, $sce, LabelService, WebsocketService, Board, stage_regexp, UserService, MilestoneService, AuthService) {
             var service = {
                 current: {},
                 boards: {},
@@ -25,19 +26,12 @@
                         if (!_.isEmpty(this.boards[path])) {
                             withCache = !this.boards[path].stale;
                         }
-                        this.boards[path] = $http.get('/api/board', {
-                            params: {
-                                project_id: path,
-                            }
-                        }).then(function(project) {
+                        //repos/:username/:repoName
+                        this.boards[path] = $http.get('/api/v2/repos/'+ path).then(function(project) {
                             project = project.data.data;
                             this.boards[path] = $q.all([
-                                LabelService.list(project.id, withCache),
-                                $http.get('/api/cards', {
-                                    params: {
-                                        project_id: project.id
-                                    }
-                                })
+                                LabelService.list(project.path_with_namespace, withCache),
+                                $http.get('/api/v2/repos/' + project.path_with_namespace + "/issues")
                             ]).then(function(results) {
                                 var board = new Board(results[0], results[1].data.data, project);
                                 this.boards[path] = board;
@@ -185,7 +179,9 @@
                 getBoards: function() {
                     var _this = this;
                     if (_.isEmpty(_this.boardsList)) {
-                        _this.boardsList = $http.get('/api/boards').then(function(result) {
+
+                    	//api/boards ->  /api/v2/user/repos
+                        _this.boardsList = $http.get('/api/v2/user/repos').then(function(result) {
                             _this.boardsList = _.keyBy(result.data.data, 'id');
                             return _this.boardsList;
                         }, function(result) {
@@ -197,7 +193,9 @@
                     return $q.when(_this.boardsList);
                 },
                 getStarredBoards: function() {
-                    return $http.get('/api/boards/starred').then(function(result) {
+
+                	///api/boards/starred /api/v2/user/repos
+                    return $http.get('/api/v2/user/repos').then(function(result) {
                             return result.data.data;
                         }, function(result) {
                             return $q.reject(result);

@@ -5,18 +5,18 @@
 package routes
 
 import (
-	"github.com/Unknwon/paginater"
-
-	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/pkg/context"
 	"github.com/gogits/gogs/pkg/setting"
-	"github.com/gogits/gogs/routes/user"
 )
 
 const (
-	BOARD                  = "board"
+	BOARD = "board"
 )
 
 func Board(c *context.Context) {
+
+	if !setting.ProdMode {
+
+	}
 	c.HTML(200, BOARD)
 }

@@ -17,7 +17,7 @@ module.exports = function (grunt) {
                     outputStyle: 'compressed'
                 },
                 files: {
-                    'web/assets/css/app.css': 'src/scss/app.scss'
+                    'public/css/app.css': 'src/scss/app.scss'
                 }
             }
         },
@@ -28,17 +28,21 @@ module.exports = function (grunt) {
                     "src/**/*.module.js",
                     "src/**/**!(.module).js"
                 ],
-                dest: "web/assets/js/app.js"
+                dest: "public/js/board/app.js"
             }
         },
 
         uglify: {
             dist: {
                 files: {
-                    "web/assets/js/app.min.js": ["web/assets/js/app.js"]
+                    "public/js/board/app.min.js": ["public/js/board/app.js"]
                 }
             }
         },
+
+		clean : {
+
+		},
 
         copy: {
             main: {
@@ -46,141 +50,141 @@ module.exports = function (grunt) {
                     {
                         flatten: false,
                         expand: true,
-                        cwd: 'node_modules/twemoji/svg/',
+                        cwd: 'node_modules/twemoji/2/svg/',
                         src: ['**/*.svg'],
-                        dest: 'web/images/twemoji/svg/',
+                        dest: 'public/img/twemoji/svg/',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
-                        src: ['node_modules/twemoji/twemoji.npm.js'],
-                        dest: 'web/assets/js/twemoji.min.js',
+                        src: ['node_modules/twemoji/2/twemoji.min.js'],
+                        dest: 'public/js/board/twemoji.min.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/markdown-it-emoji/dist/markdown-it-emoji.min.js'],
-                        dest: 'web/assets/js/markdown-it-emoji.min.js',
+                        dest: 'public/js/board/markdown-it-emoji.min.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/markdown-it/dist/markdown-it.js'],
-                        dest: 'web/assets/js/markdown-it.js',
+                        dest: 'public/js/board/markdown-it.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-storage/dist/angular-storage.js'],
-                        dest: 'web/assets/js/angular-storage.js',
+                        dest: 'public/js/board/angular-storage.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-lodash/angular-lodash.js'],
-                        dest: 'web/assets/js/angular-lodash.js',
+                        dest: 'public/js/board/angular-lodash.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/lodash/lodash.js'],
-                        dest: 'web/assets/js/lodash.js',
+                        dest: 'public/js/board/lodash.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-mm-foundation/src/topbar/topbar.js'],
-                        dest: 'web/assets/js/topbar.js',
+                        dest: 'public/js/board/topbar.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-mm-foundation/src/dropdownToggle/dropdownToggle.js'],
-                        dest: 'web/assets/js/dropdownToggle.js',
+                        dest: 'public/js/board/dropdownToggle.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-file-upload/dist/angular-file-upload.js'],
-                        dest: 'web/assets/js/angular-file-upload.js',
+                        dest: 'public/js/board/angular-file-upload.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-mm-foundation/src/position/position.js'],
-                        dest: 'web/assets/js/position.js',
+                        dest: 'public/js/board/position.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-mm-foundation/src/typeahead/typeahead.js'],
-                        dest: 'web/assets/js/typeahead.js',
+                        dest: 'public/js/board/typeahead.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-mm-foundation/src/bindHtml/bindHtml.js'],
-                        dest: 'web/assets/js/bindHtml.js',
+                        dest: 'public/js/board/bindHtml.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-mm-foundation/src/mediaQueries/mediaQueries.js'],
-                        dest: 'web/assets/js/mediaQueries.js',
+                        dest: 'public/js/board/mediaQueries.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-mm-foundation/src/tabs/tabs.js'],
-                        dest: 'web/assets/js/tabs.js',
+                        dest: 'public/js/board/tabs.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-loading-bar/build/loading-bar.js'],
-                        dest: 'web/assets/js/loading-bar.js',
+                        dest: 'public/js/board/loading-bar.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-loading-bar/build/loading-bar.css'],
-                        dest: 'web/assets/css/loading-bar.css',
+                        dest: 'public/css/loading-bar.css',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-mm-foundation/src/transition/transition.js'],
-                        dest: 'web/assets/js/transition.js',
+                        dest: 'public/js/board/transition.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/ng-sortable/dist/ng-sortable.js'],
-                        dest: 'web/assets/js/ng-sortable.js',
+                        dest: 'public/js/board/ng-sortable.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular/angular.js'],
-                        dest: 'web/assets/js/angular.js',
+                        dest: 'public/js/board/angular.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angular-ui-router/release/angular-ui-router.min.js'],
-                        dest: 'web/assets/js/angular-ui-router.js',
+                        dest: 'public/js/board/angular-ui-router.js',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/ng-sortable/dist/ng-sortable.min.css'],
-                        dest: 'web/assets/css/ng-sortable.min.css',
+                        dest: 'public/css/ng-sortable.min.css',
                         filter: 'isFile'
                     },
                     {
                         flatten: true,
                         src: ['node_modules/angularjs-datepicker/dist/angular-datepicker.min.js'],
-                        dest: 'web/assets/js/angularjs-datepicker.min.js',
+                        dest: 'public/js/board/angularjs-datepicker.min.js',
                         filter: 'isFile'
                     },
                     {
@@ -188,7 +192,7 @@ module.exports = function (grunt) {
                         expand: true,
                         cwd: 'node_modules/angular-mm-foundation/template',
                         src: '**',
-                        dest: 'web/template/',
+                        dest: 'public/template/',
                         filter: 'isFile'
                     },
                     {
@@ -196,7 +200,7 @@ module.exports = function (grunt) {
                         expand: true,
                         cwd: 'node_modules/foundation-sites/js/foundation/',
                         src: '**',
-                        dest: 'web/assets/js',
+                        dest: 'public/js/board',
                         filter: 'isFile'
                     },
                     {
@@ -204,7 +208,7 @@ module.exports = function (grunt) {
                         expand: true,
                         cwd: 'node_modules/font-awesome/fonts/',
                         src: '**',
-                        dest: 'web/assets/fonts/',
+                        dest: 'public/fonts/',
                         filter: 'isFile'
                     },
                     {
@@ -212,7 +216,7 @@ module.exports = function (grunt) {
                         expand: true,
                         cwd: 'src/',
                         src: ['**/*.js'],
-                        dest: 'web/assets/js/',
+                        dest: 'public/js/board/',
                         filter: 'isFile'
                     },
                     {
@@ -220,21 +224,7 @@ module.exports = function (grunt) {
                         expand: true,
                         cwd: 'src/',
                         src: ['**/*.html'],
-                        dest: 'web/assets/html/',
-                        filter: 'isFile'
-                    },
-                    {
-                        flatten: true,
-                        src: ['src/user/views/oauth.html'],
-                        dest: 'web/assets/html/user/views/oauth.html',
-                        filter: 'isFile'
-                    },
-                    {
-                        flatten: false,
-                        expand: true,
-                        cwd: 'src/static/images/',
-                        src: ['**/*.svg', '**/*.png'],
-                        dest: 'web/images/',
+                        dest: 'public/assets/html/',
                         filter: 'isFile'
                     }
         ]
@@ -263,7 +253,7 @@ watch: {
         },
 
         uglify: {
-            files: ['web/assets/js/app.js'],
+            files: ['public/js/board/app.js'],
             tasks: ['uglify']
         }
     }

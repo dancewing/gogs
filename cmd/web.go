@@ -39,11 +39,14 @@ import (
 	"github.com/gogits/gogs/routes"
 	"github.com/gogits/gogs/routes/admin"
 	apiv1 "github.com/gogits/gogs/routes/api/v1"
-	"github.com/gogits/gogs/routes/dev"
+	apiv2 "github.com/gogits/gogs/routes/api/v2"
+	//	"github.com/gogits/gogs/routes/dev"
+	"github.com/go-macaron/sockets"
 	"github.com/gogits/gogs/routes/org"
 	"github.com/gogits/gogs/routes/project"
 	"github.com/gogits/gogs/routes/repo"
 	"github.com/gogits/gogs/routes/user"
+	"gitlab.com/leanlabsio/kanban/ws"
 )
 
 var Web = cli.Command{
@@ -334,9 +337,9 @@ func runWeb(c *cli.Context) error {
 		m.Get("/action/:action", user.Action)
 	}, reqSignIn)
 
-	if macaron.Env == macaron.DEV {
-		m.Get("/template/*", dev.TemplatePreview)
-	}
+	//if macaron.Env == macaron.DEV {
+	//	m.Get("/template/*", dev.TemplatePreview)
+	//}
 
 	reqRepoAdmin := context.RequireRepoAdmin()
 	reqRepoWriter := context.RequireRepoWriter()
@@ -475,6 +478,7 @@ func runWeb(c *cli.Context) error {
 		m.Get("/labels/", repo.RetrieveLabels, repo.Labels)
 		m.Get("/milestones", repo.Milestones)
 	}, ignSignIn, context.RepoAssignment(true))
+
 	m.Group("/:username/:reponame", func() {
 		// FIXME: should use different URLs but mostly same logic for comments of issue and pull reuqest.
 		// So they can apply their own enable/disable logic on routers.
@@ -638,9 +642,10 @@ func runWeb(c *cli.Context) error {
 	})
 	// ***** END: Repository *****
 
+	m.Get("/boards", reqSignIn, routes.Board)
+	m.Get("/boards/*", reqSignIn, routes.Board)
 
-
-	m.Group("/projects", func(){
+	m.Group("/projects", func() {
 		m.Get("", project.ListProject)
 		m.Get("/my", reqSignIn, project.ListProject)
 	})
@@ -651,8 +656,11 @@ func runWeb(c *cli.Context) error {
 		m.Post("/delete/*", reqSignIn, reqRepoWriter, repo.DeleteBranchPost, reqSignIn)
 	})
 
+	m.Get("/ws/", sockets.Messages(), ws.ListenAndServe)
+
 	m.Group("/api", func() {
 		apiv1.RegisterRoutes(m)
+		apiv2.RegisterRoutes(m)
 	}, ignSignIn)
 
 	// robots.txt
