@@ -1,0 +1,74 @@
+<div data-ng-controller="TopBarController" class="fixed">
+    <top-bar is-hover="false">
+        <top-bar-section>
+            <ul class="left" style="width: auto;">
+                <li class="name">
+                    <a data-ui-sref="board.boards()"><i class="fa fa-database">&nbsp;</i>&nbsp;boards</a>
+                </li>
+                <li data-ng-show="!isEmpty(project)" class="hide-for-medium-down">
+                    <a data-ui-sref="board.cards({project_id: project.id, project_path: project.path_with_namespace})">{{project.name_with_namespace}}</a>
+                </li>
+            </ul>
+
+            <ul class="right">
+                <!-- filter button -->
+                <li data-ng-show="!isEmpty(project)">
+                    <a href="#" data-ng-click="showActionBar()">
+                        <i class="fa fa-bars"></i>
+                        <span class="hide-for-medium-down">&nbsp;&nbsp;Actions</span>
+                    </a>
+                </li>
+                <!-- filter button -->
+
+                <li data-has-dropdown data-ng-show="!isEmpty(project)">
+                    <a href="#"><i class="fa fa-list-alt"></i>
+                        <span class="hide-for-medium-down">&nbsp;&nbsp;Swimlane</span>
+                    </a>
+                    <ul data-top-bar-dropdown>
+                        <li data-ng-click="group('user')">
+                            <a><i class="fa fa-group"></i>&nbsp;&nbsp;Users</a>
+                        </li>
+                        <li data-ng-click="group('milestone')">
+                            <a><i class="fa fa-clock-o"></i>&nbsp;&nbsp;Milestones</a>
+                        </li>
+                        <li data-ng-click="group('priority')">
+                            <a><i class="fa fa-star-o"></i>&nbsp;&nbsp;Priority</a>
+                        </li>
+                        <li data-ng-click="reset()">
+                            <a><i class="fa fa-reply"></i>&nbsp;&nbsp;Reset</a>
+                        </li>
+                    </ul>
+                </li>
+                <li data-has-dropdown data-ng-show="!isEmpty(project)">
+                    <a href="#"><i class="fa fa-plus"></i>
+                        <span class="hide-for-medium-down">&nbsp;&nbsp;Add</span>
+                    </a>
+                    <ul data-top-bar-dropdown>
+                        <li>
+                            <a data-ui-sref="board.cards.create({ project_id: project.id, project_path: project.path_with_namespace })">
+                                <i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;Issue
+                            </a>
+                        </li>
+                        <li>
+                            <a data-ui-sref="board.cards.milestone_create({ project_id: project.id, project_path: project.path_with_namespace })">
+                                <i class="fa fa-clock-o"></i>&nbsp;&nbsp;Milestone
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li data-ng-show="!isEmpty(project)">
+                    <a data-ui-sref="board.cards.settings({project_id: project.id, project_path: project.path_with_namespace})" title="Settings">
+                        <i class="fa fa-gears"></i>
+                        <span class="hide-for-medium-down">&nbsp;&nbsp;Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a data-ng-click="logout()">
+                        <i class="fa fa-sign-out"></i>
+                        <span class="hide-for-medium-down">&nbsp;&nbsp;Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </top-bar-section>
+    </top-bar>
+</div>
