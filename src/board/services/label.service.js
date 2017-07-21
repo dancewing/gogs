@@ -33,7 +33,7 @@
                     }.bind(this));
                 },
                 listStages: function(projectId){
-                	console.log("listStages:" + projectId);
+                	//console.log("listStages:" + projectId);
                     return _.chain(this.labels[projectId])
                         .filter(function(label) {
                             return stage_regexp.test(label.name);
@@ -46,7 +46,7 @@
                         }).value();
                 },
                 listPriorities: function(projectId) {
-					console.log("listPriorities:" + projectId);
+					//console.log("listPriorities:" + projectId);
                     return _.chain(this.labels[projectId])
                         .filter(function(label) {
                             return priority_regexp.test(label.name);
@@ -59,7 +59,7 @@
                         }).value();
                 },
                 listViewLabels: function(projectId) {
-					console.log("listViewLabels:" + projectId);
+					//console.log("listViewLabels:" + projectId);
                     return _.chain(this.labels[projectId])
                            .filter(function(label) {
                                 return !(stage_regexp.test(label.name) || priority_regexp.test(label.name));
@@ -68,12 +68,12 @@
                            .value();
                 },
                 getPriority: function(projectId, label){
-					console.log("getPriority:" + projectId);
+					//console.log("getPriority:" + projectId);
                     var priority =_.find(this.labels[projectId], {name: label});
                     return new CardPriority(priority);
                 },
                 getStage: function(projectId, label) {
-					console.log("getStage:" + projectId);
+					//console.log("getStage:" + projectId);
                     if (_.isEmpty(label)) {
                         return "";
                     }
@@ -87,7 +87,7 @@
                     return new Stage(stage);
                 },
                 getStageByName: function(projectId, viewName) {
-					console.log("getStageByName:" + projectId);
+					//console.log("getStageByName:" + projectId);
                     return this.list(projectId).then(function(labels){
                         var stages = _.chain(labels)
                             .filter(function(label) {

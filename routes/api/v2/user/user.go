@@ -72,7 +72,7 @@ func GetInfo(c *context.APIContext) {
 }
 
 //
-func GetAuthenticatedUser(c *context.APIContext) {
+func GetAuthenticatedUser(c *context.Context) {
 	c.JSONSuccess(&form.Response{
 		Data: c.User.APIFormat(),
 	})

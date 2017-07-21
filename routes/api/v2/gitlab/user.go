@@ -3,15 +3,15 @@ package gitlab
 import "github.com/gogits/gogs/models"
 
 type User struct {
-	Id        int64
-	Name      string
-	IsAdmin   bool
-	AvatarUrl string
-	State     string
-	Username  string
-	Passwd    string
-	Salt      string
-	Email     string
+	Id        int64  `json:"id"`
+	Name      string `json:"name"`
+	IsAdmin   bool   `json:"isAdmin"`
+	AvatarUrl string `json:"avatarUrl"`
+	State     string `json:"state"`
+	Username  string `json:"username"`
+	Passwd    string `json:"-"`
+	Salt      string `json:"-"`
+	Email     string `json:"-"`
 }
 
 // mapUserFromGitlab mapped data from gitlab user to kanban user

@@ -140,7 +140,7 @@ func CreateConnectBoard(ctx *context.APIContext, form gitlab.BoardRequest) {
 // ListConnectBoard gets list connected boards
 func ListConnectBoard(ctx *context.APIContext) {
 
-	boards, status, err := ListConnectBoardFromCache(ctx, ctx.ParamsInt64(":board"))
+	boards, status, err := ListConnectBoardFromCache(ctx, ctx.Repo.Repository.ID)
 
 	//boards, status, err := ctx.DataSource.ListConnectBoard(ctx.Params(":board"))
 	//

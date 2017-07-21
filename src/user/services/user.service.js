@@ -15,7 +15,7 @@
                                     project_id: projectId
                                 }
                             }).then(function(result) {
-                                _this.users[projectId] = result.data;
+                                _this.users[projectId] = result.data.data;
                                 return _this.users[projectId];
                             });
                         }

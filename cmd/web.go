@@ -45,7 +45,7 @@ import (
 	"github.com/gogits/gogs/routes/project"
 	"github.com/gogits/gogs/routes/repo"
 	"github.com/gogits/gogs/routes/user"
-	"gitlab.com/leanlabsio/kanban/ws"
+	"github.com/gogits/gogs/pkg/ws"
 )
 
 var Web = cli.Command{

@@ -75,10 +75,9 @@ func (c *Card) RoutingKey() string {
 // mapCardFromGitlab mapped gitlab issue to kanban card
 func MapCardFromGogs(c *models.Issue) *Card {
 	card := Card{
-		Id:    c.ID,
-		Iid:   c.ID,
-		Title: c.Title,
-		//	State:             c.State(),
+		Id:          c.ID,
+		Iid:         c.Index,
+		Title:       c.Title,
 		Assignee:    MapUserFromGogs(c.Assignee),
 		Author:      MapUserFromGogs(c.Poster),
 		Description: mapCardDescriptionFromGitlab(c.Content),
@@ -96,6 +95,12 @@ func MapCardFromGogs(c *models.Issue) *Card {
 		//	DueDate:           c.DueDate,
 		//	Confidential:      c.Confidential,
 		//	WebURL:            c.WebURL,
+	}
+
+	if c.IsClosed {
+		card.State = "closed"
+	} else {
+		card.State = "open"
 	}
 
 	//card.TodoMetrics = mapCardTodoMetrics(card.Todo)

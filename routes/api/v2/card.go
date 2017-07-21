@@ -193,15 +193,15 @@ func MoveToCard(ctx *context.APIContext, f gitlab.CardRequest) {
 		issue.AddLabel(ctx.User, dl)
 	}
 
-	if f.MilestoneId > 0 {
-		milestore, err := models.GetMilestoneByRepoID(ctx.Repo.Repository.ID, f.MilestoneId)
+	if issue.MilestoneID != f.MilestoneId {
+		milestore , err := models.GetMilestoneByRepoID(ctx.Repo.Repository.ID, f.MilestoneId)
 
 		if err != nil {
 			ctx.Error(500, "GetMilestoneByRepoID", err)
 			return
 		}
 
-		issue.Milestone.ID = milestore.ID
+		issue.MilestoneID =milestore.ID
 		err = models.UpdateIssue(issue)
 
 		if err != nil {
@@ -210,8 +210,8 @@ func MoveToCard(ctx *context.APIContext, f gitlab.CardRequest) {
 		}
 	}
 
-	if f.AssigneeId > 0 {
-		assignee, err := models.GetAssigneeByID(ctx.Repo.Repository, f.AssigneeId)
+	if issue.AssigneeID != f.AssigneeId {
+		assignee , err := models.GetAssigneeByID(ctx.Repo.Repository, f.AssigneeId)
 		if err != nil {
 			ctx.Error(500, "GetAssigneeByID", err)
 			return
@@ -226,12 +226,21 @@ func MoveToCard(ctx *context.APIContext, f gitlab.CardRequest) {
 		}
 	}
 
+	err = issue.LoadAttributes()
+
+	if err != nil {
+		ctx.Error(500, "issue.LoadAttributes", err)
+		return
+	}
+
+	card:=gitlab.MapCardFromGogs(issue)
+
 	ctx.JSON(http.StatusOK, &gitlab.Response{
-		Data: gitlab.MapCardFromGogs(issue),
+		Data: card,
 	})
 
-	ctx.Broadcast(issue.Title, &gitlab.Response{
-		Data:  issue,
+	ctx.Broadcast(card.RoutingKey(), &gitlab.Response{
+		Data:  card,
 		Event: "card.move",
 	})
 
