@@ -660,7 +660,7 @@ func runWeb(c *cli.Context) error {
 	m.Group("/api", func() {
 		//apiv1.RegisterRoutes(m)
 		apiv2.RegisterKBRoutes(m)
-	}, ignSignIn, context.APIContexter())
+	}, ignSignIn)
 
 	// robots.txt
 	m.Get("/robots.txt", func(c *context.Context) {

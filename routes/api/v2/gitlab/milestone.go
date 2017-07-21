@@ -20,6 +20,7 @@ type MilestoneRequest struct {
 	Description string `json:"description"`
 	DueDate     string `json:"due_date"`
 }
+
 func MapMilestoneFromGogs(m *models.Milestone) *Milestone {
 
 	if m == nil {
@@ -28,8 +29,10 @@ func MapMilestoneFromGogs(m *models.Milestone) *Milestone {
 
 	return &Milestone{
 		ID:  m.ID,
-		IID: m.RepoID,
+		IID: m.ID,
 		//State: m.State().(string),
-		Title: m.Name,
+		Title:       m.Name,
+		DueDate:     m.DeadlineString,
+		Description: "",
 	}
 }

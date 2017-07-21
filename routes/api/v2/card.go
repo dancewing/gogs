@@ -13,11 +13,11 @@ import (
 
 // ListCards gets a list of card on board accessible by the authenticated user.
 func ListCards(ctx *context.APIContext) {
-	pr := ctx.QueryInt64("project_id")
+	//pr := ctx.QueryInt64("project_id")
 
 	//proj, _, err := ctx.DataSource.ListConnectBoard(pr)
 
-	proj, _, err := ListConnectBoardFromCache(ctx, pr)
+	proj, _, err := ListConnectBoardFromCache(ctx, ctx.Repo.Repository.ID)
 
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, &gitlab.ResponseError{
@@ -28,7 +28,7 @@ func ListCards(ctx *context.APIContext) {
 	}
 
 	//current, err := ctx.DataSource.ItemBoard(pr)
-	current, err := GetItemBoardByID(pr)
+	current, err := GetItemBoardByID(ctx.Repo.Repository.ID)
 
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, &gitlab.ResponseError{
@@ -160,50 +160,74 @@ func MoveToCard(ctx *context.APIContext, f gitlab.CardRequest) {
 		return
 	}
 
-	repo, err := models.GetRepositoryByID(f.ProjectId)
-
-	if err != nil {
-		if errors.IsRepoNotExist(err) {
-			ctx.Status(404)
-		} else {
-			ctx.Error(500, "GetRepositoryByID", err)
-		}
+	if !issue.IsPoster(ctx.User.ID) && !ctx.Repo.IsWriter() {
+		ctx.Status(403)
 		return
 	}
-
-
-	//if !issue.IsPoster(ctx.User.ID) && !ctx.Repo.IsWriter() {
-	//	ctx.Status(403)
-	//	return
-	//}
 
 	source := f.Stage["source"]
 	dest := f.Stage["dest"]
 
-	sl, err := models.GetLabelOfRepoByName(repo.ID, source)
+	//change label
+	if dest != source {
+		sl, err := models.GetLabelOfRepoByName(ctx.Repo.Repository.ID, source)
 
-	if err != nil {
+		if err != nil {
 
-		ctx.Error(500, "GetLabelOfRepoByName", err)
-		return
+			ctx.Error(500, "GetLabelOfRepoByName", err)
+			return
+		}
+
+		dl, err := models.GetLabelOfRepoByName(ctx.Repo.Repository.ID, dest)
+
+		if err != nil {
+
+			ctx.Error(500, "GetLabelOfRepoByName", err)
+			return
+		}
+
+		log.Info("try to change %s 's status from %s to %s", issue.Title, sl.Name, dl.Name)
+
+		issue.RemoveLabel(ctx.User, sl)
+
+		issue.AddLabel(ctx.User, dl)
 	}
 
-	dl, err := models.GetLabelOfRepoByName(repo.ID, dest)
+	if f.MilestoneId > 0 {
+		milestore, err := models.GetMilestoneByRepoID(ctx.Repo.Repository.ID, f.MilestoneId)
 
-	if err != nil {
+		if err != nil {
+			ctx.Error(500, "GetMilestoneByRepoID", err)
+			return
+		}
 
-		ctx.Error(500, "GetLabelOfRepoByName", err)
-		return
+		issue.Milestone.ID = milestore.ID
+		err = models.UpdateIssue(issue)
+
+		if err != nil {
+			ctx.Error(500, "UpdateIssue", err)
+			return
+		}
 	}
 
-	log.Info("try to change %s 's status from %s to %s", issue.Title, sl.Name, dl.Name)
+	if f.AssigneeId > 0 {
+		assignee, err := models.GetAssigneeByID(ctx.Repo.Repository, f.AssigneeId)
+		if err != nil {
+			ctx.Error(500, "GetAssigneeByID", err)
+			return
+		}
 
-	issue.RemoveLabel(ctx.User, sl)
+		issue.AssigneeID = assignee.ID
 
-	issue.AddLabel(ctx.User, dl)
+		err = models.UpdateIssue(issue)
+		if err != nil {
+			ctx.Error(500, "UpdateIssue", err)
+			return
+		}
+	}
 
 	ctx.JSON(http.StatusOK, &gitlab.Response{
-		Data: issue,
+		Data: gitlab.MapCardFromGogs(issue),
 	})
 
 	ctx.Broadcast(issue.Title, &gitlab.Response{

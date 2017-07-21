@@ -58,8 +58,8 @@ type CardRequest struct {
 	ProjectId    int64             `json:"project_id"`
 	Title        string            `json:"title"`
 	Description  string            `json:"description"`
-	AssigneeId   *int64            `json:"assignee_id"`
-	MilestoneId  *int64            `json:"milestone_id"`
+	AssigneeId   int64             `json:"assignee_id"`
+	MilestoneId  int64             `json:"milestone_id"`
 	Labels       string            `json:"labels"`
 	Properties   *Properties       `json:"properties"`
 	Stage        map[string]string `json:"stage"`
@@ -75,8 +75,8 @@ func (c *Card) RoutingKey() string {
 // mapCardFromGitlab mapped gitlab issue to kanban card
 func MapCardFromGogs(c *models.Issue) *Card {
 	card := Card{
-		Id: c.ID,
-		//	Iid:               c.Iid,
+		Id:    c.ID,
+		Iid:   c.ID,
 		Title: c.Title,
 		//	State:             c.State(),
 		Assignee:    MapUserFromGogs(c.Assignee),
@@ -86,6 +86,7 @@ func MapCardFromGogs(c *models.Issue) *Card {
 		Labels:      MapLabelsFromGogs(c.Labels),
 		ProjectId:   c.Repo.ID,
 		Properties:  mapCardPropertiesFromGitlab(c.Content),
+		BoardID:     fmt.Sprintf("%d", c.Repo.ID),
 		///Todo:              mapCardTodoFromGitlab(c.Content),
 		PathWithNamespace: getPathWithNamespace(c.Repo),
 		UserCommentsCount: c.NumComments,

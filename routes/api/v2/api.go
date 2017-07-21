@@ -397,19 +397,56 @@ func RegisterKBRoutes(m *macaron.Macaron) {
 	m.Group("/boards", func() {
 		m.Get("", ListBoards)
 		m.Get("/starred", ListStarredBoards)
-		m.Post("/configure", binding.Json(gitlab.BoardRequest{}), Configure)
+		//m.Post("/configure", binding.Json(gitlab.BoardRequest{}), Configure)
 
-		m.Group("/:board", func() {
+		m.Group("/:username/:reponame", func() {
+
+			m.Get("", ItemBoard)
+
+			m.Post("/configure", binding.Json(gitlab.BoardRequest{}), Configure)
+
+			m.Combo("/labels").
+				Get(ListLabels).
+				Put(binding.Json(gitlab.LabelRequest{}), EditLabel).
+				Delete(DeleteLabel).
+				Post(binding.Json(gitlab.LabelRequest{}), CreateLabel)
+
 			m.Combo("/connect").
 				Get(ListConnectBoard).
 				Post(binding.Json(gitlab.BoardRequest{}), CreateConnectBoard).
 				Delete(DeleteConnectBoard)
 
-			m.Post("/upload", binding.MultipartForm(gitlab.UploadForm{}), UploadFile)
-		})
-	})
+			m.Group("/cards", func() {
+				m.Get("", ListCards)
+				m.Combo("/:card").
+					Post(binding.Json(gitlab.CardRequest{}), CreateCard).
+					Put(binding.Json(gitlab.CardRequest{}), UpdateCard).
+					Delete(binding.Json(gitlab.CardRequest{}), DeleteCard)
+			})
 
-	m.Get("/board", ItemBoard)
+			m.Combo("/milestones").
+				Get(ListMilestones).
+				Post(binding.Json(gitlab.MilestoneRequest{}), CreateMilestone)
+
+			m.Get("/users", ListMembers)
+
+			m.Combo("/move").
+				Put(binding.Json(gitlab.CardRequest{}), MoveToCard).
+				Post(binding.Json(gitlab.CardRequest{}), ChangeProjectForCard)
+
+			//m.Put("/move", binding.Json(gitlab.CardRequest{}), MoveToCard)
+			//m.Post("/move/:projectId", binding.Json(gitlab.CardRequest{}), ChangeProjectForCard)
+
+			m.Combo("/comments").
+				Get(ListComments).
+				Post(binding.Json(gitlab.CommentRequest{}), CreateComment)
+
+			m.Post("/upload", binding.MultipartForm(gitlab.UploadForm{}), UploadFile)
+		}, repoAssignment())
+
+	}, context.APIContexter())
+
+	//m.Get("/board", ItemBoard)
 
 	m.Get("/cards", ListCards)
 	m.Combo("/milestones").

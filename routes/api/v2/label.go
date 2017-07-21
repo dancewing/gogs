@@ -9,7 +9,7 @@ import (
 // ListLabels gets a list of label on board accessible by the authenticated user.
 func ListLabels(ctx *context.APIContext) {
 
-	labels, err := models.GetLabelsByRepoID(ctx.ParamsInt64(":project"))
+	labels, err := models.GetLabelsByRepoID(ctx.Repo.Repository.ID)
 	if err != nil {
 		ctx.Error(500, "GetLabelsByRepoID", err)
 		return

@@ -35,20 +35,30 @@ func ItemBoard(ctx *context.APIContext) {
 
 	//TODO check privileges
 
-	fullPath := ctx.Query("project_id")
+	//fullPath := ctx.Query("project_id")
+	//
+	//repo, err := models.GetRepositoryByRef(fullPath)
+	//
+	////repo, err := models.GetRepositoryByID(ctx.QueryInt64("project_id"))
+	//
+	//if err != nil {
+	//	if err, ok := err.(gitlab.ReceivedDataErr); ok {
+	//		ctx.JSON(err.StatusCode, &gitlab.ResponseError{
+	//			Success: false,
+	//			Message: err.Error(),
+	//		})
+	//		return
+	//	}
+	//	ctx.JSON(http.StatusInternalServerError, &gitlab.ResponseError{
+	//		Success: false,
+	//		Message: err.Error(),
+	//	})
+	//	return
+	//}
 
-	repo, err := models.GetRepositoryByRef(fullPath)
-
-	//repo, err := models.GetRepositoryByID(ctx.QueryInt64("project_id"))
+	err := ctx.Repo.Repository.LoadAttributes()
 
 	if err != nil {
-		if err, ok := err.(gitlab.ReceivedDataErr); ok {
-			ctx.JSON(err.StatusCode, &gitlab.ResponseError{
-				Success: false,
-				Message: err.Error(),
-			})
-			return
-		}
 		ctx.JSON(http.StatusInternalServerError, &gitlab.ResponseError{
 			Success: false,
 			Message: err.Error(),
@@ -56,7 +66,7 @@ func ItemBoard(ctx *context.APIContext) {
 		return
 	}
 
-	board := gitlab.MapBoardFromGogs(repo)
+	board := gitlab.MapBoardFromGogs(ctx.Repo.Repository)
 
 	ctx.JSON(200, &gitlab.Response{
 		Data: board,
