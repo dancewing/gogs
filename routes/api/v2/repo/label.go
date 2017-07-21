@@ -50,7 +50,7 @@ func CreateKBIssueLabels(c *context.APIContext) {
 
 	apiLabels := make([]*gitlab.Label, len(labels))
 	for i := range labels {
-		apiLabels[i] = gitlab.MapLabelFromGitlab(labels[i])
+		apiLabels[i] = gitlab.MapLabelFromGogs(labels[i])
 	}
 	c.JSON(200, &form.Response{
 		Data: &apiLabels,
@@ -66,7 +66,7 @@ func ListLabels(c *context.APIContext) {
 
 	apiLabels := make([]*gitlab.Label, len(labels))
 	for i := range labels {
-		apiLabels[i] = gitlab.MapLabelFromGitlab(labels[i])
+		apiLabels[i] = gitlab.MapLabelFromGogs(labels[i])
 	}
 	c.JSON(200, &form.Response{
 		Data: &apiLabels,
@@ -92,7 +92,7 @@ func GetLabel(c *context.APIContext) {
 	}
 
 	c.JSON(200, &form.Response{
-		Data: gitlab.MapLabelFromGitlab(label),
+		Data: gitlab.MapLabelFromGogs(label),
 	})
 }
 

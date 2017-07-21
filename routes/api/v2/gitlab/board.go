@@ -2,10 +2,8 @@ package gitlab
 
 import "github.com/gogits/gogs/models"
 
-// Project represents a GitLab project.
-//
-// GitLab API docs: http://doc.gitlab.com/ce/api/projects.html
-type Project struct {
+// Board represents a kanban board.
+type Board struct {
 	Id                int64      `json:"id"`
 	Name              string     `json:"name"`
 	NamespaceWithName string     `json:"name_with_namespace"`
@@ -18,30 +16,32 @@ type Project struct {
 	AvatarUrl         string     `json:"avatar_url,nil,omitempty"`
 }
 
-// Namespace represents a GitLab namespace.
-//
-// GitLab API docs: http://doc.gitlab.com/ce/api/namespaces.html
+type BoardRequest struct {
+	BoardId string `json:"project_id"`
+}
+
+// Board represents a namespace kanban board.
 type Namespace struct {
 	Id     int64   `json:"id"`
 	Name   string  `json:"name,omitempty"`
 	Avatar *Avatar `json:"avatar,nil,omitempty"`
 }
 
-// Avatar represents a GitLab avatar.
+// Avatar represent a Avatar url.
 type Avatar struct {
 	Url string `json:"url"`
 }
 
-func MapProjectFromGitlab(r *models.Repository) *Project {
-	return &Project{
+func MapBoardFromGogs(r *models.Repository) *Board {
+	return &Board{
 		Id:                r.ID,
 		Name:              r.Name,
 		NamespaceWithName: getNamespaceWithName(r),
 		PathWithNamespace: getPathWithNamespace(r),
-		Namespace:         MapNamespaceFromGitlab(r.Owner),
+		Namespace:         MapNamespaceFromGogs(r.Owner),
 		Description:       r.Description,
-		Owner:             MapUserFromGitlab(r.Owner),
-		AvatarUrl:         r.HTMLURL(),
+		Owner:             MapUserFromGogs(r.Owner),
+		AvatarUrl:         MapAvatarFromGogs(r.Owner).Url,
 	}
 }
 

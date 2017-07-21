@@ -19,6 +19,7 @@ import (
 	"github.com/gogits/gogs/pkg/context"
 	"github.com/gogits/gogs/pkg/form"
 	"github.com/gogits/gogs/routes/api/v2/admin"
+	"github.com/gogits/gogs/routes/api/v2/gitlab"
 	"github.com/gogits/gogs/routes/api/v2/misc"
 	"github.com/gogits/gogs/routes/api/v2/org"
 	"github.com/gogits/gogs/routes/api/v2/repo"
@@ -296,7 +297,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 						m.Get("", repo.ListRepoIssueComments)
 						m.Combo("/:id").Patch(bind(api.EditIssueCommentOption{}), repo.EditIssueComment)
 					})
-					m.Group("/:index", func() {
+					m.Group("/:issue", func() {
 						m.Combo("").Get(repo.GetIssue).Patch(bind(api.EditIssueOption{}), repo.EditIssue)
 
 						m.Group("/comments", func() {
@@ -311,6 +312,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 								Put(bind(api.IssueLabelsOption{}), repo.ReplaceIssueLabels).
 								Delete(repo.ClearIssueLabels)
 							m.Delete("/:id", repo.DeleteIssueLabel)
+
 						})
 
 					})
@@ -321,11 +323,15 @@ func RegisterRoutes(m *macaron.Macaron) {
 					Post(repo.CreateConnectBoard).
 					Delete(repo.DeleteConnectBoard)
 
+				m.Put("/move", bind(gitlab.CardRequest{}), repo.MoveToCard)
+
 				m.Group("/labels", func() {
 					m.Combo("").Get(repo.ListLabels).
 						Post(bind(api.CreateLabelOption{}), repo.CreateLabel)
 					m.Combo("/:id").Get(repo.GetLabel).Patch(bind(api.EditLabelOption{}), repo.EditLabel).
 						Delete(repo.DeleteLabel)
+
+					m.Post("/createKBLabels", repo.CreateKBIssueLabels)
 				})
 				m.Group("/milestones", func() {
 					m.Combo("").Get(repo.ListMilestones).
@@ -379,4 +385,53 @@ func RegisterRoutes(m *macaron.Macaron) {
 			})
 		}, reqAdmin())
 	}, context.APIContexter())
+}
+
+func RegisterKBRoutes(m *macaron.Macaron) {
+
+	m.Get("/labels/:project", ListLabels)
+	m.Put("/labels/:project", binding.Json(gitlab.LabelRequest{}), EditLabel)
+	m.Delete("/labels/:project/:label", DeleteLabel)
+	m.Post("/labels/:project", binding.Json(gitlab.LabelRequest{}), CreateLabel)
+
+	m.Group("/boards", func() {
+		m.Get("", ListBoards)
+		m.Get("/starred", ListStarredBoards)
+		m.Post("/configure", binding.Json(gitlab.BoardRequest{}), Configure)
+
+		m.Group("/:board", func() {
+			m.Combo("/connect").
+				Get(ListConnectBoard).
+				Post(binding.Json(gitlab.BoardRequest{}), CreateConnectBoard).
+				Delete(DeleteConnectBoard)
+
+			m.Post("/upload", binding.MultipartForm(gitlab.UploadForm{}), UploadFile)
+		})
+	})
+
+	m.Get("/board", ItemBoard)
+
+	m.Get("/cards", ListCards)
+	m.Combo("/milestones").
+		Get(ListMilestones).
+		Post(binding.Json(gitlab.MilestoneRequest{}), CreateMilestone)
+
+	m.Get("/users", ListMembers)
+	m.Combo("/comments").
+		Get(ListComments).
+		Post(binding.Json(gitlab.CommentRequest{}), CreateComment)
+
+	m.Group("/card/:board", func() {
+		m.Combo("").
+			Post(binding.Json(gitlab.CardRequest{}), CreateCard).
+			Put(binding.Json(gitlab.CardRequest{}), UpdateCard).
+			Delete(binding.Json(gitlab.CardRequest{}), DeleteCard)
+
+		m.Put("/move", binding.Json(gitlab.CardRequest{}), MoveToCard)
+		m.Post("/move/:projectId", binding.Json(gitlab.CardRequest{}), ChangeProjectForCard)
+
+	})
+
+	m.Get("/current", user.GetAuthenticatedUser)
+
 }

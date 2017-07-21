@@ -34,7 +34,15 @@
                         });
                     },
                     getCurrent: function () {
-                        return store.get('id_token');
+
+                    	if (store.get('id_token')!==null) return store.get('id_token');
+
+						return $http.get('/api/current').then(function (result) {
+							store.set('id_token', result.data);
+							return store.get('id_token');
+						});
+
+                      //  return store.get('id_token');
                     },
                     isAuthenticated: function () {
                         return this.getCurrent() !== null;

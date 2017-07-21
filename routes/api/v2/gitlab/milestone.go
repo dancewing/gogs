@@ -2,9 +2,6 @@ package gitlab
 
 import "github.com/gogits/gogs/models"
 
-// Milestone represents a GitLab milestone.
-//
-// GitLab API docs: http://doc.gitlab.com/ce/api/branches.html
 type Milestone struct {
 	ID          int64  `json:"id"`
 	IID         int64  `json:"iid"`
@@ -16,16 +13,14 @@ type Milestone struct {
 	CreatedAt   string `json:"created_at"`
 }
 
-// MilestoneRequest represents the available CreateMilestone() and UpdateMilestone() options.
-//
-// GitLab API docs: http://doc.gitlab.com/ce/api/milestones.html#create-new-milestone
 type MilestoneRequest struct {
+	MilestoneID int64  `json:"milestone_id"`
+	ProjectID   int64  `json:"project_id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	DueDate     string `json:"due_date"`
 }
-
-func MapMilestoneFromGithub(m *models.Milestone) *Milestone {
+func MapMilestoneFromGogs(m *models.Milestone) *Milestone {
 
 	if m == nil {
 		return nil

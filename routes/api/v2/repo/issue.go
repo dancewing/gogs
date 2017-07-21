@@ -32,13 +32,13 @@ func listIssues(c *context.APIContext, opts *models.IssuesOptions) {
 	}
 
 	// FIXME: use IssueList to improve performance.
-	apiIssues := make([]*gitlab.Issue, len(issues))
+	apiIssues := make([]*gitlab.Card, len(issues))
 	for i := range issues {
 		if err = issues[i].LoadAttributes(); err != nil {
 			c.Error(500, "LoadAttributes", err)
 			return
 		}
-		apiIssues[i] = gitlab.MapIssueFromGitlab(issues[i])
+		apiIssues[i] = gitlab.MapCardFromGogs(issues[i])
 	}
 
 	c.SetLinkHeader(int(count), setting.UI.IssuePagingNum)
@@ -69,7 +69,7 @@ func ListIssues(c *context.APIContext) {
 
 func GetIssue(c *context.APIContext) {
 	//issue, err := models.GetIssueByIndex(c.Repo.Repository.ID, c.ParamsInt64(":id"))
-	issue, err := models.GetIssueByID(c.ParamsInt64(":id"))
+	issue, err := models.GetIssueByID(c.ParamsInt64(":issue"))
 	if err != nil {
 		if errors.IsIssueNotExist(err) {
 			c.Status(404)
@@ -79,25 +79,25 @@ func GetIssue(c *context.APIContext) {
 		return
 	}
 	c.JSON(200, &form.Response{
-		Data: gitlab.MapIssueFromGitlab(issue),
+		Data: gitlab.MapCardFromGogs(issue),
 	})
 }
 
-func CreateIssue(c *context.APIContext, form api.CreateIssueOption) {
+func CreateIssue(c *context.APIContext, option api.CreateIssueOption) {
 	issue := &models.Issue{
 		RepoID:   c.Repo.Repository.ID,
-		Title:    form.Title,
+		Title:    option.Title,
 		PosterID: c.User.ID,
 		Poster:   c.User,
-		Content:  form.Body,
+		Content:  option.Body,
 	}
 
 	if c.Repo.IsWriter() {
-		if len(form.Assignee) > 0 {
-			assignee, err := models.GetUserByName(form.Assignee)
+		if len(option.Assignee) > 0 {
+			assignee, err := models.GetUserByName(option.Assignee)
 			if err != nil {
 				if errors.IsUserNotExist(err) {
-					c.Error(422, "", fmt.Sprintf("Assignee does not exist: [name: %s]", form.Assignee))
+					c.Error(422, "", fmt.Sprintf("Assignee does not exist: [name: %s]", option.Assignee))
 				} else {
 					c.Error(500, "GetUserByName", err)
 				}
@@ -105,17 +105,17 @@ func CreateIssue(c *context.APIContext, form api.CreateIssueOption) {
 			}
 			issue.AssigneeID = assignee.ID
 		}
-		issue.MilestoneID = form.Milestone
+		issue.MilestoneID = option.Milestone
 	} else {
-		form.Labels = nil
+		option.Labels = nil
 	}
 
-	if err := models.NewIssue(c.Repo.Repository, issue, form.Labels, nil); err != nil {
+	if err := models.NewIssue(c.Repo.Repository, issue, option.Labels, nil); err != nil {
 		c.Error(500, "NewIssue", err)
 		return
 	}
 
-	if form.Closed {
+	if option.Closed {
 		if err := issue.ChangeStatus(c.User, c.Repo.Repository, true); err != nil {
 			c.Error(500, "ChangeStatus", err)
 			return
@@ -130,14 +130,14 @@ func CreateIssue(c *context.APIContext, form api.CreateIssueOption) {
 		return
 	}
 	//c.JSON(201, issue.APIFormat())
-	//c.JSON(200, &form.Response{
-	//	Data: gitlab.MapIssueFromGitlab(issue),
-	//})
+	c.JSON(200, &form.Response{
+		Data: gitlab.MapCardFromGogs(issue),
+	})
 }
 
 func EditIssue(c *context.APIContext, form api.EditIssueOption) {
-	issue, err := models.GetIssueByIndex(c.Repo.Repository.ID, c.ParamsInt64(":index"))
-	//issue, err := models.GetIssueByID(c.ParamsInt64(":id"))
+	//issue, err := models.GetIssueByIndex(c.Repo.Repository.ID, c.ParamsInt64(":index"))
+	issue, err := models.GetIssueByID(c.ParamsInt64(":issue"))
 	if err != nil {
 		if errors.IsIssueNotExist(err) {
 			c.Status(404)

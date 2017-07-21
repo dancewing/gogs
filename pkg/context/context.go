@@ -21,11 +21,14 @@ import (
 	log "gopkg.in/clog.v1"
 	"gopkg.in/macaron.v1"
 
+	"encoding/json"
+
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/models/errors"
 	"github.com/gogits/gogs/pkg/auth"
 	"github.com/gogits/gogs/pkg/form"
 	"github.com/gogits/gogs/pkg/setting"
+	"github.com/gogits/gogs/pkg/ws"
 )
 
 // Context represents context of a request.
@@ -304,4 +307,10 @@ func Contexter() macaron.Handler {
 
 		ctx.Map(c)
 	}
+}
+
+// Broadcast sends message via WebSocket to all subscribed to r users
+func (*Context) Broadcast(r string, d interface{}) {
+	res, _ := json.Marshal(d)
+	go ws.Server(r).Broadcast(string(res))
 }

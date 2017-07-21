@@ -11,6 +11,8 @@ import (
 
 	api "github.com/gogits/go-gogs-client"
 
+	"net/http"
+
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/models/errors"
 	"github.com/gogits/gogs/pkg/context"
@@ -18,8 +20,6 @@ import (
 	"github.com/gogits/gogs/pkg/setting"
 	"github.com/gogits/gogs/routes/api/v2/convert"
 	"github.com/gogits/gogs/routes/api/v2/gitlab"
-	"net/http"
-	"gitlab.com/leanlabsio/kanban/modules/middleware"
 )
 
 // https://github.com/gogits/go-gogs-client/wiki/Repositories#search-repositories
@@ -126,11 +126,11 @@ func listUserRepositories(c *context.APIContext, username string) {
 	}
 
 	numOwnRepos := len(ownRepos)
-	repos := make([]*gitlab.Project, numOwnRepos+len(accessibleRepos))
+	repos := make([]*gitlab.Board, numOwnRepos+len(accessibleRepos))
 
 	for i := range ownRepos {
 		//repos[i] = ownRepos[i].APIFormat(&api.Permission{true, true, true})
-		repos[i] = gitlab.MapProjectFromGitlab(ownRepos[i])
+		repos[i] = gitlab.MapBoardFromGogs(ownRepos[i])
 	}
 
 	i := numOwnRepos
@@ -144,7 +144,7 @@ func listUserRepositories(c *context.APIContext, username string) {
 	//}
 
 	for repo, _ := range accessibleRepos {
-		repos[i] = gitlab.MapProjectFromGitlab(repo)
+		repos[i] = gitlab.MapBoardFromGogs(repo)
 		i++
 	}
 
@@ -333,7 +333,7 @@ func Get(c *context.APIContext) {
 		return
 	}
 
-	project := gitlab.MapProjectFromGitlab(repo)
+	project := gitlab.MapBoardFromGogs(repo)
 
 	c.JSON(200, &form.Response{
 		Data: project,
@@ -397,7 +397,6 @@ func MirrorSync(c *context.APIContext) {
 	c.Status(202)
 }
 
-
 // CreateConnectBoard add other repository to current board
 func CreateConnectBoard(ctx *context.APIContext) {
 
@@ -410,6 +409,69 @@ func ListConnectBoard(ctx *context.APIContext) {
 }
 
 // DeleteConnectBoard deletes board from connected board
-func DeleteConnectBoard(ctx *middleware.Context) {
+func DeleteConnectBoard(ctx *context.APIContext) {
 	ctx.JSON(http.StatusOK, &form.Response{})
+}
+
+func MoveToCard(ctx *context.APIContext, f gitlab.CardRequest) {
+
+	issue, err := models.GetIssueByID(f.CardId)
+	if err != nil {
+		if errors.IsIssueNotExist(err) {
+			ctx.Status(404)
+		} else {
+			ctx.Error(500, "GetIssueByID", err)
+		}
+		return
+	}
+
+	if !issue.IsPoster(ctx.User.ID) && !ctx.Repo.IsWriter() {
+		ctx.Status(403)
+		return
+	}
+
+	source := f.Stage["source"]
+	dest := f.Stage["dest"]
+	sl, err := models.GetLabelByID(source)
+
+	if err != nil {
+
+		ctx.Error(500, "GetLabelByID", err)
+		return
+	}
+
+	dl, err := models.GetLabelByID(dest)
+
+	if err != nil {
+
+		ctx.Error(500, "GetLabelByID", err)
+		return
+	}
+
+	log.Info("try to change %s 's status from %s to %s", issue.Title, sl.Name, dl.Name)
+
+	issue.RemoveLabel(ctx.User, sl)
+
+	issue.AddLabel(ctx.User, dl)
+
+	ctx.JSON(http.StatusOK, &form.Response{
+		Data: issue,
+	})
+
+	ctx.Broadcast(issue.Title, &form.Response{
+		Data:  issue,
+		Event: "card.move",
+	})
+
+	//if source.Name != dest.Name && viper.GetBool("auto.comments") {
+	//	com := models.CommentRequest{
+	//		CardId:    form.CardId,
+	//		ProjectId: form.ProjectId,
+	//		Body:      fmt.Sprintf("moved issue from **%s** to **%s**", source.Name, dest.Name),
+	//	}
+	//
+	//	go func() {
+	//		ctx.DataSource.CreateComment(&com)
+	//	}()
+	//}
 }

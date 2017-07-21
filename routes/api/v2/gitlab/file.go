@@ -1,10 +1,15 @@
 package gitlab
 
-// File represents uploaded file to gitlab
-//
-// Gitlab API docs: http://docs.gitlab.com/ee/api/projects.html#upload-a-file
+import "mime/multipart"
+
+// File represents uploaded file
 type File struct {
 	Alt      string `json:"alt"`
 	URL      string `json:"url"`
 	Markdown string `json:"markdown"`
+}
+
+// UploadForm represents file uploaded
+type UploadForm struct {
+	File *multipart.FileHeader `form:"file"`
 }

@@ -1,29 +1,34 @@
 package gitlab
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
-// Comment represents a GitLab note.
-//
-// GitLab API docs: http://doc.gitlab.com/ce/api/notes.html
+// Comment represents a card comment
 type Comment struct {
 	Id        int64     `json:"id"`
 	Author    *User     `json:"author"`
 	Body      string    `json:"body"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	System    bool      `json:"system"`
-	Upvote    bool      `json:"upvote"`
-	Downvote  bool      `json:"downvote"`
+	IsInfo    bool      `json:"is_info"`
 }
 
-// commentSlice represents list comments for usage sort.Interface
-type commentSlice []*Comment
-
-// CommentRequest represents the available CreateComment() and UpdateComment()
-// options.
-//
-// GitLab API docs:
-// http://doc.gitlab.com/ce/api/notes.html#create-new-issue-note
+// CommentRequest represents a request for create or update comment on card
 type CommentRequest struct {
-	Body string `json:"body"`
+	CardId    int64  `json:"issue_id"`
+	ProjectId int64  `json:"project_id"`
+	Body      string `json:"body"`
+}
+
+// Marshal returns the JSON encoding of comment
+func (c *Comment) MarshalJSON() ([]byte, error) {
+	type Alias Comment
+	return json.Marshal(struct {
+		CreatedAt int64 `json:"created_at"`
+		*Alias
+	}{
+		CreatedAt: c.CreatedAt.Unix(),
+		Alias:     (*Alias)(c),
+	})
 }
