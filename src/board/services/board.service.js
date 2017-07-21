@@ -37,8 +37,8 @@
                             ]).then(function(results) {
                                 var board = new Board(results[0], results[1].data.data, project);
                                 this.boards[path] = board;
-                                this.boardIdIndex[board.project.id] = board.project.path_with_namespace;
-                                this.boardPathIndex[board.project.path_with_namespace] = board.project.id;
+                                this.boardIdIndex[board.project.id] = board.project.id;
+                                this.boardPathIndex[board.project.path_with_namespace] = board.project.path_with_namespace;
 
                                 return this.boards[path];
                             }.bind(this));
@@ -335,6 +335,7 @@
             });
 
             WebsocketService.on('card.move', function(data) {
+            	console.log('card.move');
                 return service.updateCardOnBoard(data);
             });
 
