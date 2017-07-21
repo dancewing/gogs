@@ -6,10 +6,10 @@
             '$q', function($http, $q) {
                 return {
                     milestones: {},
-                    list: function(projectId) {
+                    list: function(projectId, path_with_namespace) {
                         var _this = this;
                         if (_.isEmpty(_this.milestones[projectId])) {
-                            _this.milestones[projectId] = $http.get('/api/milestones', {
+                            _this.milestones[projectId] = $http.get('/api/boards/'+ path_with_namespace+'/milestones', {
                                 params: {
                                     project_id: projectId
                                 }

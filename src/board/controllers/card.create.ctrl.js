@@ -22,13 +22,13 @@
                 };
 
                 BoardService.get($stateParams.project_path).then(function(board) {
-                    UserService.list(board.project.id).then(function(users) {
+                    UserService.list(board.project.id, board.project.path_with_namespace).then(function(users) {
                         $scope.options = users;
                     });
 
                     $scope.board = board;
 
-                    MilestoneService.list(board.project.id).then(function(milestones) {
+                    MilestoneService.list(board.project.id, board.project.path_with_namespace).then(function(milestones) {
                         $scope.milestones = milestones;
                     });
 
@@ -55,7 +55,7 @@
                         }
                     }
 
-                    BoardService.listConnected(board.project.id).then(function(projects){
+                    BoardService.listConnected(board.project.id, board.project.path_with_namespace).then(function(projects){
                         $scope.connected_projects = projects;
                     });
 
@@ -76,11 +76,11 @@
                 $scope.changeProject = function(project) {
                     $scope.card.project = project;
 
-                    MilestoneService.list(project.id).then(function(milestones) {
+                    MilestoneService.list(project.id, project.path_with_namespace).then(function(milestones) {
                         $scope.milestones = milestones;
                     });
 
-                    UserService.list(project.id).then(function(users) {
+                    UserService.list(project.id, project.path_with_namespace).then(function(users) {
                         $scope.users = users;
                     });
                 };

@@ -10,9 +10,9 @@
         function($q, $http, stage_regexp, priority_regexp, CardPriority, Stage) {
             return {
                 labels: [],
-                list: function(projectId, withCache) {
+                list: function(path_with_namespace, withCache) {
                     withCache = (typeof withCache === 'undefined') ? true : withCache;
-                    return $http.get('/api/labels/' + projectId, {
+                    return $http.get('/api/boards/' + path_with_namespace + "/labels", {
                         cache: withCache
                     }).then(function(result) {
                         var labels = result.data.data;
@@ -28,8 +28,8 @@
                             return {};
                         }
 
-                        this.labels[projectId] = labels;
-                        return this.labels[projectId];
+                        this.labels[path_with_namespace] = labels;
+                        return this.labels[path_with_namespace];
                     }.bind(this));
                 },
                 listStages: function(projectId){

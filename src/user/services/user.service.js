@@ -7,10 +7,10 @@
             '$q', function($http, $q) {
                 return {
                     users: {},
-                    list: function(projectId) {
+                    list: function(projectId, path_with_namespace) {
                         var _this = this;
                         if (_.isEmpty(_this.users[projectId])) {
-                            _this.users[projectId] = $http.get('/api/users', {
+                            _this.users[projectId] = $http.get('/api/boards/' + path_with_namespace +'/users', {
                                 params: {
                                     project_id: projectId
                                 }

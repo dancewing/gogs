@@ -31,7 +31,7 @@
             $scope.priorities = board.priorities;
             $scope.project_id = board.project.id;
 
-            BoardService.listConnected(board.project.id).then(function(boards){
+            BoardService.listConnected(board.project.id, board.project.path_with_namespace).then(function(boards){
                 $scope.boards = boards;
             });
         });
@@ -138,7 +138,7 @@
                 if (res) {
                     BoardService.boardConnected = {};
                 }
-                return BoardService.listConnected($scope.project_id);
+                return BoardService.listConnected($scope.project_id, board.path_with_namespace);
             }).then(function(boards){
                 $scope.boards = boards;
                 $scope.saving = false;
@@ -152,7 +152,7 @@
                 if (res) {
                     BoardService.boardConnected = {};
                 }
-                return BoardService.listConnected($scope.project_id);
+                return BoardService.listConnected($scope.project_id, board.path_with_namespace);
             }).then(function(boards){
                 $scope.boards = boards;
                 $scope.saving = false;

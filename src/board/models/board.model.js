@@ -21,9 +21,9 @@
                     this.defaultStages = {};
                     this.state = new State();
                     this.counts = {};
-                    this.stages = LabelService.listStages(project.id);
-                    this.priorities = LabelService.listPriorities(project.id);
-                    this.viewLabels = LabelService.listViewLabels(project.id);
+                    this.stages = LabelService.listStages(project.path_with_namespace);
+                    this.priorities = LabelService.listPriorities(project.path_with_namespace);
+                    this.viewLabels = LabelService.listViewLabels(project.path_with_namespace);
                     this.priorityLabels = _.map(this.priorities, 'name');
                     this.stagelabels = _.map(this.stages, 'name');
                     _.each(this.stages, _.bind(function (stage) {
@@ -32,13 +32,13 @@
 
                     this.initViewLabels = function (issue) {
                         issue.viewLabels = [];
-                        issue.stage = LabelService.getStage(project.id,
+                        issue.stage = LabelService.getStage(project.path_with_namespace,
                             _.find(issue.labels, function(l){return stage_regexp.test(l)}
                         ));
                         if (! issue.stage) {
                             issue.stage = this.stages[0];
                         }
-                        issue.priority = LabelService.getPriority(project.id, _.intersection(this.priorityLabels, issue.labels)[0]);
+                        issue.priority = LabelService.getPriority(project.path_with_namespace, _.intersection(this.priorityLabels, issue.labels)[0]);
 
                         if (!_.isEmpty(issue.labels)) {
                             var labels = issue.labels;
@@ -78,7 +78,7 @@
                         var old = this.getCardById(card.id);
 
                         if (_.isEmpty(old)) {
-                            card.stage = LabelService.getStage(project.id,
+                            card.stage = LabelService.getStage(project.path_with_namespace,
                                 _.find(card.labels, function(l){return stage_regexp.test(l)}
                             ));
                             this.initViewLabels(card);
@@ -90,7 +90,7 @@
                     this.update = function (card) {
                         var old = this.getCardById(card.id);
                         _.extend(old, card);
-                        old.stage = LabelService.getStage(project.id,
+                        old.stage = LabelService.getStage(project.path_with_namespace,
                             _.find(old.labels, function(l){return stage_regexp.test(l)}
                         ));
                         this.initViewLabels(old);

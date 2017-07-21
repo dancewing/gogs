@@ -25,15 +25,11 @@
                         if (!_.isEmpty(this.boards[path])) {
                             withCache = !this.boards[path].stale;
                         }
-                        this.boards[path] = $http.get('/api/board', {
-                            params: {
-                                project_id: path,
-                            }
-                        }).then(function(project) {
+                        this.boards[path] = $http.get('/api/boards/'+ path ).then(function(project) {
                             project = project.data.data;
                             this.boards[path] = $q.all([
-                                LabelService.list(project.id, withCache),
-                                $http.get('/api/cards', {
+                                LabelService.list(project.path_with_namespace, withCache),
+                                $http.get('/api/boards/' + project.path_with_namespace + "/cards", {
                                     params: {
                                         project_id: project.id
                                     }
@@ -53,15 +49,15 @@
 
                     return $q.when(this.boards[path]);
                 },
-                listConnected: function(id) {
+                listConnected: function(id, path_with_namespace) {
                     if (_.isEmpty(this.boardConnected[id])) {
-                        this.boardConnected[id] = $http.get('/api/boards/' + id + '/connect', {
+                        this.boardConnected[id] = $http.get('/api/boards/' + path_with_namespace + '/connect', {
                         }).then(function(result){
                             angular.forEach(result.data.data, function(item){
                                 if (! this.boardConnectedIndex[item.id]) {
                                     this.boardConnectedIndex[item.id] = [];
                                 }
-                                this.boardConnectedIndex[item.id].push(id);
+                                this.boardConnectedIndex[item.id].push(project.id);
                                 this.boardConnectedIndex[item.id] = _.uniq(this.boardConnectedIndex[item.id]);
                             }, this);
 
@@ -70,15 +66,19 @@
                     }
                     return $q.when(this.boardConnected[id]);
                 },
-                connectBoard: function(boardId, connectBoardId) {
-                    return $http.post('/api/boards/' + boardId + '/connect', {
-                        project_id: connectBoardId
+                connectBoard: function(project, boardId, connectBoardId) {
+                    return $http.post('/api/boards/' + project.path_with_namespace + '/connect', {
+                        project_id: connectBoardId,
+						source_id : boardId,
+						target_id : connectBoardId
                     });
                 },
-                deleteConnected: function(boardId, connectBoardId) {
-                    return $http.delete('/api/boards/' + boardId + '/connect', {
+                deleteConnected: function(project, boardId, connectBoardId) {
+                    return $http.delete('/api/boards/' + project.path_with_namespace + '/connect', {
                         params: {
-                            board_id: connectBoardId
+                            board_id: connectBoardId,
+							source_id : boardId,
+							target_id : connectBoardId
                         }
                     });
                 },
@@ -141,7 +141,7 @@
                     });
                 },
                 moveCard: function(board, card, oldStage, newStage) {
-                    return $http.put('/api/card/' + board.project.id + '/move', this.sanitize({
+                    return $http.put('/api/boards/' + board.project.path_with_namespace + '/move', this.sanitize({
                         project_id: card.project_id,
                         issue_id: card.id,
                         assignee_id: card.assignee ? card.assignee.id : null,
@@ -158,7 +158,7 @@
                     }));
                 },
                 changeProject: function(board, card, project) {
-                    return LabelService.getStageByName(project.id, card.stage.viewName).then(function(stage){
+                    return LabelService.getStageByName(project.path_with_namespace, card.stage.viewName).then(function(stage){
                         card.labels = _.filter(card.labels, function(label) {
                             return !stage_regexp.test(label);
                         });
@@ -166,7 +166,7 @@
                             card.labels.push(stage.name);
                         }
 
-                        return $http.post('/api/card/' + board.project.id + '/move/' + project.id, this.sanitize({
+                        return $http.post('/api/card/' + board.project.id + '/move/' + project.path_with_namespace, this.sanitize({
                             issue_id: card.id,
                             project_id: card.project_id,
                             assignee_id: card.assignee ? card.assignee.id : null,
@@ -260,6 +260,7 @@
                         },
                         dragEnd: function(event) {
                             var id = event.source.itemScope.card.id,
+								path_with_namespace = event.source.itemScope.card.path_with_namespace,
                                 card = board.getCardById(id),
                                 oldLabel = "",
                                 newLabel = "",
@@ -269,7 +270,7 @@
                                 newStage = null;
 
                             LabelService.getStageByName(
-                                card.project_id,
+								path_with_namespace,
                                 event.source.sortableScope.$parent.stageName
                             ).then(function(res) {
                                 oldStage = res;
@@ -277,7 +278,7 @@
                                     oldLabel = oldStage.name;
                                 }
                                 return LabelService.getStageByName(
-                                    card.project_id,
+                                    path_with_namespace,
                                     event.dest.sortableScope.$parent.stageName
                                 );
                             }).then(function(res) {

@@ -127,7 +127,7 @@
                 }
 
                 if (grouped == 'milestone') {
-                    MilestoneService.list(board.project.id).then(function(milestones) {
+                    MilestoneService.list(board.project.id, board.project.path_with_namespace).then(function(milestones) {
                         $scope.groupLabels = _.sortBy(milestones, function(milestone){ return milestone.id });
                         $scope.groupLabels.push({
                             id: 0,
@@ -135,7 +135,7 @@
                         });
                     });
                 } else if (grouped == 'user') {
-                    UserService.list(board.project.id).then(function(users) {
+                    UserService.list(board.project.id, board.project.path_with_namespace).then(function(users) {
                         $scope.groupLabels = _.clone(users);
                         $scope.groupLabels.push({
                             id: 0,
@@ -143,7 +143,7 @@
                         });
                     });
                 } else if (grouped == 'project') {
-                    BoardService.listConnected(board.project.id).then(function(connected){
+                    BoardService.listConnected(board.project.id, board.project.path_with_namespace).then(function(connected){
                         $scope.groupLabels = _.clone(connected);
                         $scope.groupLabels.push({
                             id: board.project.id,
@@ -189,7 +189,7 @@
                 WebsocketService.emit('subscribe', {
                     routing_key: 'kanban.' + board.project.id.toString()
                 });
-                BoardService.listConnected(board.project.id.toString()).then(function(connected){
+                BoardService.listConnected(board.project.id, board.project.path_with_namespace).then(function(connected){
                     angular.forEach(connected, function(item){
                         WebsocketService.emit('subscribe', {
                             routing_key: 'kanban.' + item.id.toString()

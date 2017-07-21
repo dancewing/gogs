@@ -23,7 +23,7 @@
                     $scope.priorities = board.priorities;
                     $scope.board = board;
 
-                    BoardService.listConnected(board.project.id).then(function(projects){
+                    BoardService.listConnected(board.project.id, board.project.path_with_namespace).then(function(projects){
                         $scope.connected_projects = projects;
                     });
 
@@ -35,11 +35,11 @@
                         $scope.comments = data;
                     });
 
-                    MilestoneService.list(card.project_id).then(function(milestones) {
+                    MilestoneService.list(card.project_id, card.path_with_namespace).then(function(milestones) {
                         $scope.milestones = milestones;
                     });
 
-                    UserService.list(card.project_id).then(function(users) {
+                    UserService.list(card.project_id, card.path_with_namespace).then(function(users) {
                         $scope.users = users;
                     });
 

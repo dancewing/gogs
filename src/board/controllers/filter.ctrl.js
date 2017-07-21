@@ -20,11 +20,11 @@
                 this.labels = _.toArray(board.viewLabels);
                 this.priorities = board.priorities;
 
-                MilestoneService.list(board.project.id).then(function(milestones) {
+                MilestoneService.list(board.project.id, board.project.path_with_namespace).then(function(milestones) {
                     this.milestones = milestones;
                 }.bind(this));
 
-                UserService.list(board.project.id).then(function(users) {
+                UserService.list(board.project.id, board.project.path_with_namespace).then(function(users) {
                     this.users = users;
                 }.bind(this));
 
