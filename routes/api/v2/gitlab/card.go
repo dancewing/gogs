@@ -62,7 +62,7 @@ type CardRequest struct {
 	MilestoneId  *int64            `json:"milestone_id"`
 	Labels       string            `json:"labels"`
 	Properties   *Properties       `json:"properties"`
-	Stage        map[string]int64 `json:"stage"`
+	Stage        map[string]string `json:"stage"`
 	Todo         []*Todo           `json:"todo"`
 	DueDate      string            `json:"due_date"`
 	Confidential bool              `json:"confidential"`

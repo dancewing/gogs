@@ -2,12 +2,12 @@ package v2
 
 import (
 	"net/http"
-	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/repo"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
-	"github.com/gogits/gogs/models"
-)
 
+	"github.com/gogits/gogs/models"
+	"github.com/gogits/gogs/pkg/context"
+	"github.com/gogits/gogs/routes/api/v2/gitlab"
+	"github.com/gogits/gogs/routes/api/v2/repo"
+)
 
 var (
 	defaultKBStages = []string{
@@ -64,6 +64,16 @@ func ItemBoard(ctx *context.APIContext) {
 
 }
 
+func GetItemBoardByID(BoardID int64) (*gitlab.Board, error) {
+	repo, err := models.GetRepositoryByID(BoardID)
+
+	if err != nil {
+		return nil, err
+	}
+	board := gitlab.MapBoardFromGogs(repo)
+	return board, nil
+}
+
 // Configure configure gitlab repository for usage board
 func Configure(c *context.APIContext, form gitlab.BoardRequest) {
 
@@ -101,48 +111,57 @@ func Configure(c *context.APIContext, form gitlab.BoardRequest) {
 
 // CreateConnectBoard add other repository to current board
 func CreateConnectBoard(ctx *context.APIContext, form gitlab.BoardRequest) {
+
+	status, err := CreateConnectBoardToCache(ctx, ctx.ParamsInt64(":board"), form.BoardId)
+
 	//status, err := ctx.DataSource.CreateConnectBoard(ctx.Params(":board"), form.BoardId)
 	//
-	//if err != nil {
-	//	ctx.JSON(status, &gitlab.ResponseError{
-	//		Success: false,
-	//		Message: err.Error(),
-	//	})
-	//	return
-	//}
+	if err != nil {
+		ctx.JSON(status, &gitlab.ResponseError{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, &gitlab.Response{})
 }
 
 // ListConnectBoard gets list connected boards
 func ListConnectBoard(ctx *context.APIContext) {
+
+	boards, status, err := ListConnectBoardFromCache(ctx, ctx.ParamsInt64(":board"))
+
 	//boards, status, err := ctx.DataSource.ListConnectBoard(ctx.Params(":board"))
 	//
-	//if err != nil {
-	//	ctx.JSON(status, &gitlab.ResponseError{
-	//		Success: false,
-	//		Message: err.Error(),
-	//	})
-	//	return
-	//}
+	if err != nil {
+		ctx.JSON(status, &gitlab.ResponseError{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, &gitlab.Response{
-		//Data: boards,
+		Data: boards,
 	})
 }
 
 // DeleteConnectBoard deletes board from connected board
 func DeleteConnectBoard(ctx *context.APIContext) {
+
+	status, err := DeleteConnectBoardFromCache(ctx, ctx.Params(":board"), ctx.Query("board_id"))
+
 	//status, err := ctx.DataSource.DeleteConnectBoard(ctx.Params(":board"), ctx.Query("board_id"))
 	//
-	//if err != nil {
-	//	ctx.JSON(status, &gitlab.ResponseError{
-	//		Success: false,
-	//		Message: err.Error(),
-	//	})
-	//
-	//	return
-	//}
+	if err != nil {
+		ctx.JSON(status, &gitlab.ResponseError{
+			Success: false,
+			Message: err.Error(),
+		})
+
+		return
+	}
 
 	ctx.JSON(http.StatusOK, &gitlab.Response{})
 }

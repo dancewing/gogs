@@ -323,7 +323,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 					Post(repo.CreateConnectBoard).
 					Delete(repo.DeleteConnectBoard)
 
-				m.Put("/move", bind(gitlab.CardRequest{}), repo.MoveToCard)
+				//m.Put("/move", bind(gitlab.CardRequest{}), repo.MoveToCard)
 
 				m.Group("/labels", func() {
 					m.Combo("").Get(repo.ListLabels).
