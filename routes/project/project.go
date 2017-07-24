@@ -2,66 +2,77 @@ package project
 
 import (
 	"github.com/gogits/gogs/pkg/context"
+	"github.com/gogits/gogs/pkg/setting"
 
-	"github.com/Unknwon/paginater"
+	"fmt"
+
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/models/errors"
 	"github.com/gogits/gogs/pkg/form"
-	"github.com/gogits/gogs/pkg/setting"
+
 	log "gopkg.in/clog.v1"
 )
 
 const (
-	CREATE = "project/create"
-	LIST   = "project/projects"
+	CREATE     = "project/create"
+	LIST       = "project/projects"
+	INITIALIZE = "project/initialize"
+	MIGRATE    = "project/migrate"
 )
 
-//Create project, get
-func Create(c *context.Context) {
-	c.Data["Title"] = c.Tr("new_project")
+func checkContextUser(c *context.Context, uid int64) *models.User {
+	orgs, err := models.GetOwnedOrgsByUserIDDesc(c.User.ID, "updated_unix")
+	if err != nil {
+		c.Handle(500, "GetOwnedOrgsByUserIDDesc", err)
+		return nil
+	}
+	c.Data["Orgs"] = orgs
 
-	c.User.GetRepositories(0, 20)
-	c.User.GetTeams()
-	c.Data["Repos"] = c.User.Repos
-	c.Data["Teams"] = c.User.Teams
+	// Not equal means current user is an organization.
+	if uid == c.User.ID || uid == 0 {
+		return c.User
+	}
 
-	c.Data["ContextUser"] = c.User
+	org, err := models.GetUserByID(uid)
+	if errors.IsUserNotExist(err) {
+		return c.User
+	}
 
-	c.HTML(200, CREATE)
+	if err != nil {
+		c.Handle(500, "GetUserByID", fmt.Errorf("[%d]: %v", uid, err))
+		return nil
+	}
+
+	// Check ownership of organization.
+	if !org.IsOrganization() || !(c.User.IsAdmin || org.IsOwnedBy(c.User.ID)) {
+		c.Error(403)
+		return nil
+	}
+	return org
 }
 
-//Create projects
-func CreatePost(c *context.Context, f form.CreateProject) {
+func Create(c *context.Context) {
 	c.Data["Title"] = c.Tr("new_repo")
 
-	c.User.GetRepositories(0, 20)
-	c.User.GetTeams()
-	c.Data["Repos"] = c.User.Repos
-	c.Data["Teams"] = c.User.Teams
+	// Give default value for template to render.
+	c.Data["Gitignores"] = models.Gitignores
+	c.Data["Licenses"] = models.Licenses
+	c.Data["Readmes"] = models.Readmes
+	c.Data["readme"] = "Default"
+	c.Data["private"] = c.User.LastRepoVisibility
+	c.Data["IsForcedPrivate"] = setting.Repository.ForcePrivate
 
-	ctxUser := c.User
+	ctxUser := checkContextUser(c, c.QueryInt64("org"))
 	if c.Written() {
 		return
 	}
 	c.Data["ContextUser"] = ctxUser
 
-	if c.HasError() {
-		c.HTML(200, CREATE)
-		return
-	}
+	projects, _ := models.ListUserTopProjects(c.User)
 
-	prg, err := models.CreateProject(ctxUser, models.CreateProjectOptions{
-		Name:        f.ProjectName,
-		Description: f.Description,
-	})
+	c.Data["Projects"] = projects
 
-	if err == nil {
-		log.Trace("Project created [%d]: %s/%s", prg.ID, ctxUser.Name, prg.Name)
-		c.Redirect(setting.AppSubURL + "/" + ctxUser.Name + "/" + prg.Name)
-		return
-	}
-
-	handleCreateError(c, ctxUser, err, "CreatePost", CREATE, &f)
+	c.HTML(200, CREATE)
 }
 
 func handleCreateError(c *context.Context, owner *models.User, err error, name, tpl string, form interface{}) {
@@ -82,77 +93,95 @@ func handleCreateError(c *context.Context, owner *models.User, err error, name, 
 	}
 }
 
-func ListProject(c *context.Context) {
-	c.Data["Title"] = c.Tr("projects")
+func CreatePost(c *context.Context, f form.CreateProject) {
+	c.Data["Title"] = c.Tr("new_project")
 
-	//c.Data["PageIsExplore"] = true
-	//c.Data["PageIsExploreRepositories"] = true
+	c.Data["Gitignores"] = models.Gitignores
+	c.Data["Licenses"] = models.Licenses
+	c.Data["Readmes"] = models.Readmes
 
-	page := c.QueryInt("page")
-	if page <= 0 {
-		page = 1
-	}
-
-	keyword := c.Query("q")
-	searchOpt := &models.SearchProjectOptions{
-		Keyword:  keyword,
-		UserID:   -1,
-		OrderBy:  "updated_unix DESC",
-		Page:     page,
-		PageSize: setting.UI.ExplorePagingNum,
-	}
-
-	prgs, count, err := models.SearchProjectByName(searchOpt)
-
-	if err != nil {
-		c.Handle(500, "SearchProjectByName", err)
+	ctxUser := checkContextUser(c, f.UserID)
+	if c.Written() {
 		return
 	}
-	c.Data["Keyword"] = keyword
-	c.Data["Total"] = count
-	c.Data["Page"] = paginater.New(int(count), setting.UI.ExplorePagingNum, page, 5)
+	c.Data["ContextUser"] = ctxUser
 
-	c.Data["Projects"] = prgs
+	projects, _ := models.ListUserTopProjects(c.User)
 
-	c.HTML(200, LIST)
+	c.Data["Projects"] = projects
+
+	if c.HasError() {
+		c.HTML(200, CREATE)
+		return
+	}
+
+	repo, err := models.CreateProject(c.User, ctxUser, models.CreateProjectOptions{
+		Name:          f.Name,
+		Description:   f.Description,
+		Gitignores:    f.Gitignores,
+		License:       f.License,
+		Readme:        f.Readme,
+		IsPrivate:     f.Private || setting.Repository.ForcePrivate,
+		AutoInit:      f.AutoInit,
+		CreateGitRepo: f.CreateGitRepo,
+	})
+	if err == nil {
+		log.Trace("Repository created [%d]: %s/%s", repo.ID, ctxUser.Name, repo.Name)
+		c.Redirect(setting.AppSubURL + "/" + ctxUser.Name + "/" + repo.Name)
+		return
+	} else {
+		log.Error(4, "CreateProject: %v", err)
+	}
+
+	if repo != nil && f.CreateGitRepo {
+		if errDelete := models.DeleteRepository(ctxUser.ID, repo.ID); errDelete != nil {
+			log.Error(4, "DeleteRepository: %v", errDelete)
+		}
+	}
+
+	handleCreateError(c, ctxUser, err, "CreatePost", CREATE, &f)
 }
 
-func ListMyProject(c *context.Context) {
+func InitializeGit(c *context.Context) {
 
-	c.Data["Title"] = c.Tr("my_projects")
+	c.Data["Gitignores"] = models.Gitignores
+	c.Data["Licenses"] = models.Licenses
+	c.Data["Readmes"] = models.Readmes
+	c.Data["readme"] = "Default"
 
-	//c.Data["PageIsExplore"] = true
-	//c.Data["PageIsExploreRepositories"] = true
+	c.HTML(200, INITIALIZE)
+}
+func InitializeGitPost(c *context.Context, f form.InitializeGit) {
+	//TODO check
+	c.Data["Gitignores"] = models.Gitignores
+	c.Data["Licenses"] = models.Licenses
+	c.Data["Readmes"] = models.Readmes
+	c.Data["readme"] = "Default"
 
-	page := c.QueryInt("page")
-	if page <= 0 {
-		page = 1
-	}
+	c.Repo.Repository.LoadAttributes()
 
-	keyword := c.Query("q")
-	searchOpt := &models.SearchProjectOptions{
-		Keyword:  keyword,
-		UserID:   -1,
-		OrderBy:  "updated_unix DESC",
-		Page:     page,
-		PageSize: setting.UI.ExplorePagingNum,
-	}
+	err := c.Repo.Repository.InitializeGit(c.User, models.CreateProjectOptions{
+		Gitignores: f.Gitignores,
+		License:    f.License,
+		Readme:     f.Readme,
+		AutoInit:   f.AutoInit,
+	})
 
-	if c.IsLogged {
-		searchOpt.UserID = c.User.ID
-	}
-
-	prgs, count, err := models.SearchProjectByName(searchOpt)
-
-	if err != nil {
-		c.Handle(500, "SearchProjectByName", err)
+	if err == nil {
+		log.Trace("Repository Initialized [%d]: %s/%s", c.Repo.Repository.ID, c.Repo.Repository.Owner.Name, c.Repo.Repository.Name)
+		c.Redirect(setting.AppSubURL + "/" + c.Repo.Repository.Owner.Name + "/" + c.Repo.Repository.Name)
 		return
+	} else {
+		log.Error(4, "CreateProject: %v", err)
+
+		c.RenderWithErr(c.Tr("form.repo_name_been_taken"), INITIALIZE, &f)
 	}
-	c.Data["Keyword"] = keyword
-	c.Data["Total"] = count
-	c.Data["Page"] = paginater.New(int(count), setting.UI.ExplorePagingNum, page, 5)
 
-	c.Data["Projects"] = prgs
+}
 
-	c.HTML(200, LIST)
+func Migrate() {
+
+}
+func MigratePost() {
+
 }

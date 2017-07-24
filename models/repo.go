@@ -171,6 +171,10 @@ type Repository struct {
 	IsMirror bool
 	*Mirror  `xorm:"-"`
 
+	GitInitialized  bool
+	ParentProjectID int64
+	ParentProject   *Repository `xorm:"-"`
+
 	// Advanced settings
 	EnableWiki            bool `xorm:"NOT NULL DEFAULT true"`
 	AllowPublicWiki       bool

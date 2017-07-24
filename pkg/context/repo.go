@@ -209,6 +209,29 @@ func RepoAssignment(pages ...bool) macaron.Handler {
 			c.Data["Mirror"] = c.Repo.Mirror
 		}
 
+		c.Data["Title"] = owner.Name + "/" + repo.Name
+		c.Data["Repository"] = repo
+		c.Data["Owner"] = c.Repo.Repository.Owner
+		c.Data["IsRepositoryOwner"] = c.Repo.IsOwner()
+		c.Data["IsRepositoryAdmin"] = c.Repo.IsAdmin()
+		c.Data["IsRepositoryWriter"] = c.Repo.IsWriter()
+
+		c.Data["DisableSSH"] = setting.SSH.Disabled
+		c.Data["DisableHTTP"] = setting.Repository.DisableHTTPGit
+		c.Data["CloneLink"] = repo.CloneLink()
+		c.Data["WikiCloneLink"] = repo.WikiCloneLink()
+
+		if c.IsLogged {
+			c.Data["IsWatchingRepo"] = models.IsWatching(c.User.ID, repo.ID)
+			c.Data["IsStaringRepo"] = models.IsStaring(c.User.ID, repo.ID)
+		}
+
+		c.Data["GitInitialized"] = c.Repo.Repository.GitInitialized
+
+		if !c.Repo.Repository.GitInitialized {
+			return
+		}
+
 		gitRepo, err := git.OpenRepository(models.RepoPath(ownerName, repoName))
 		if err != nil {
 			c.ServerError(fmt.Sprintf("RepoAssignment Invalid repo '%s'", c.Repo.Repository.RepoPath()), err)
@@ -224,17 +247,17 @@ func RepoAssignment(pages ...bool) macaron.Handler {
 		c.Data["Tags"] = tags
 		c.Repo.Repository.NumTags = len(tags)
 
-		c.Data["Title"] = owner.Name + "/" + repo.Name
-		c.Data["Repository"] = repo
-		c.Data["Owner"] = c.Repo.Repository.Owner
-		c.Data["IsRepositoryOwner"] = c.Repo.IsOwner()
-		c.Data["IsRepositoryAdmin"] = c.Repo.IsAdmin()
-		c.Data["IsRepositoryWriter"] = c.Repo.IsWriter()
-
-		c.Data["DisableSSH"] = setting.SSH.Disabled
-		c.Data["DisableHTTP"] = setting.Repository.DisableHTTPGit
-		c.Data["CloneLink"] = repo.CloneLink()
-		c.Data["WikiCloneLink"] = repo.WikiCloneLink()
+		//c.Data["Title"] = owner.Name + "/" + repo.Name
+		//c.Data["Repository"] = repo
+		//c.Data["Owner"] = c.Repo.Repository.Owner
+		//c.Data["IsRepositoryOwner"] = c.Repo.IsOwner()
+		//c.Data["IsRepositoryAdmin"] = c.Repo.IsAdmin()
+		//c.Data["IsRepositoryWriter"] = c.Repo.IsWriter()
+		//
+		//c.Data["DisableSSH"] = setting.SSH.Disabled
+		//c.Data["DisableHTTP"] = setting.Repository.DisableHTTPGit
+		//c.Data["CloneLink"] = repo.CloneLink()
+		//c.Data["WikiCloneLink"] = repo.WikiCloneLink()
 
 		if c.IsLogged {
 			c.Data["IsWatchingRepo"] = models.IsWatching(c.User.ID, repo.ID)
@@ -274,6 +297,11 @@ func RepoAssignment(pages ...bool) macaron.Handler {
 // RepoRef handles repository reference name including those contain `/`.
 func RepoRef() macaron.Handler {
 	return func(c *Context) {
+
+		if !c.Repo.Repository.GitInitialized {
+			return
+		}
+
 		// Empty repository does not have reference information.
 		if c.Repo.Repository.IsBare {
 			return

@@ -41,11 +41,11 @@ import (
 	apiv2 "github.com/gogits/gogs/routes/api/v2"
 	//	"github.com/gogits/gogs/routes/dev"
 	"github.com/go-macaron/sockets"
+	"github.com/gogits/gogs/pkg/ws"
 	"github.com/gogits/gogs/routes/org"
 	"github.com/gogits/gogs/routes/project"
 	"github.com/gogits/gogs/routes/repo"
 	"github.com/gogits/gogs/routes/user"
-	"github.com/gogits/gogs/pkg/ws"
 )
 
 var Web = cli.Command{
@@ -629,6 +629,12 @@ func runWeb(c *cli.Context) error {
 
 		m.Group("/:reponame", func() {
 			m.Head("/tasks/trigger", repo.TriggerTask)
+			m.Combo("/initialize").
+				Get(reqSignIn, context.RepoAssignment(), project.InitializeGit).
+				Post(reqSignIn, context.RepoAssignment(), bindIgnErr(form.InitializeGit{}), project.InitializeGitPost)
+			m.Combo("/migrate").
+				Get(reqSignIn, project.Migrate).
+				Post(reqSignIn, project.MigratePost)
 		})
 		// Use the regexp to match the repository name
 		// Duplicated routes to enable different ways of accessing same set of URLs,
@@ -645,8 +651,8 @@ func runWeb(c *cli.Context) error {
 	m.Get("/boards/*", reqSignIn, routes.Board)
 
 	m.Group("/projects", func() {
-		m.Get("", project.ListProject)
-		m.Get("/my", reqSignIn, project.ListProject)
+		//m.Get("", project.ListProject)
+		//m.Get("/my", reqSignIn, project.ListProject)
 	})
 
 	m.Group("/project", func() {

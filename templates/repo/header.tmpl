@@ -31,7 +31,7 @@
 									{{.NumStars}}
 								</a>
 							</div>
-							{{if .CanBeForked}}
+							{{if and $.GitInitialized .CanBeForked}}
 								<div class="ui labeled button" tabindex="0">
 									<a class="ui basic button {{if eq .OwnerID $.LoggedUserID}}poping up{{end}}" href="{{AppSubURL}}/repo/fork/{{.ID}}">
 										<i class="octicon octicon-repo-forked"></i>{{$.i18n.Tr "repo.fork"}}
@@ -61,7 +61,7 @@
 					<i class="octicon octicon-issue-opened"></i> {{.i18n.Tr "repo.issues"}} {{if not .Repository.EnableExternalTracker}}<span class="ui {{if not .Repository.NumOpenIssues}}gray{{else}}blue{{end}} small label">{{.Repository.NumOpenIssues}}{{end}}</span>
 				</a>
 			{{end}}
-			{{if and .Repository.AllowsPulls (not .IsGuest)}}
+			{{if and .GitInitialized .Repository.AllowsPulls (not .IsGuest)}}
 				<a class="{{if .PageIsPullList}}active{{end}} item" href="{{.RepoLink}}/pulls">
 					<i class="octicon octicon-git-pull-request"></i> {{.i18n.Tr "repo.pulls"}} <span class="ui {{if not .Repository.NumOpenPulls}}gray{{else}}blue{{end}} small label">{{.Repository.NumOpenPulls}}</span>
 				</a>

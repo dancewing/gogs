@@ -27,10 +27,11 @@ import (
 )
 
 const (
-	BARE     = "repo/bare"
-	HOME     = "repo/home"
-	WATCHERS = "repo/watchers"
-	FORKS    = "repo/forks"
+	BARE                = "repo/bare"
+	HOME                = "repo/home"
+	WATCHERS            = "repo/watchers"
+	FORKS               = "repo/forks"
+	GIT_NOT_INITIALIZED = "repo/git_not_initialized"
 )
 
 func renderDirectory(c *context.Context, treeLink string) {
@@ -235,6 +236,11 @@ func setEditorconfigIfExists(c *context.Context) {
 
 func Home(c *context.Context) {
 	c.Data["PageIsViewFiles"] = true
+
+	if !c.Repo.Repository.GitInitialized {
+		c.HTML(200, GIT_NOT_INITIALIZED)
+		return
+	}
 
 	if c.Repo.Repository.IsBare {
 		c.HTML(200, BARE)

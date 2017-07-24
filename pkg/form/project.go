@@ -8,11 +8,21 @@ package form
 //         \/        \/                   \/        \/                        \/       \/ \/
 
 type CreateProject struct {
-	UserID      int64  `binding:"Required"`
-	ProjectName string `binding:"Required;AlphaDashDot;MaxSize(100)"`
-	Private     bool
-	Description string `binding:"MaxSize(255)"`
-
+	UserID          int64  `binding:"Required"`
+	Name            string `binding:"Required;AlphaDashDot;MaxSize(100)"`
+	Private         bool
+	Description     string `binding:"MaxSize(255)"`
+	AutoInit        bool
+	Gitignores      string
+	License         string
+	Readme          string
+	CreateGitRepo   bool
 	ParentProjectID int64
-	RepoID          int64
+}
+
+type InitializeGit struct {
+	AutoInit   bool
+	Gitignores string
+	License    string
+	Readme     string
 }

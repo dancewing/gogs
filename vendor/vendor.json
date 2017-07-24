@@ -315,6 +315,12 @@
 			"revisionTime": "2016-07-24T20:39:20Z"
 		},
 		{
+			"checksumSHA1": "rJab1YdNhQooDiBWNnt7TLWPyBU=",
+			"path": "github.com/pkg/errors",
+			"revision": "c605e284fe17294bda444b34710735b29d1a9d90",
+			"revisionTime": "2017-05-05T04:36:39Z"
+		},
+		{
 			"checksumSHA1": "woY3inKe+d7B1jPTFxVKNCCFH9c=",
 			"path": "github.com/pquerna/otp",
 			"revision": "9e1935374bc73ffe011187dafed51a412b90fe43",
@@ -625,6 +631,24 @@
 			"path": "gopkg.in/oauth2.v3",
 			"revision": "2d34ab7b6095944079dd90706519426d39b75dba",
 			"revisionTime": "2017-06-20T10:36:27Z"
+		},
+		{
+			"checksumSHA1": "HerU6W2GzUoeRGYjNyAW0VBvLfs=",
+			"path": "gopkg.in/olivere/elastic.v5",
+			"revision": "f5030c016b49a6fb0e1958bc765562246c0a912c",
+			"revisionTime": "2017-07-19T12:17:08Z"
+		},
+		{
+			"checksumSHA1": "Z/5tTcmNfSOHMkcLDkxN93PQ410=",
+			"path": "gopkg.in/olivere/elastic.v5/config",
+			"revision": "f5030c016b49a6fb0e1958bc765562246c0a912c",
+			"revisionTime": "2017-07-19T12:17:08Z"
+		},
+		{
+			"checksumSHA1": "pCApZfp2CeDnWbNVsyzNO62ZUXA=",
+			"path": "gopkg.in/olivere/elastic.v5/uritemplates",
+			"revision": "f5030c016b49a6fb0e1958bc765562246c0a912c",
+			"revisionTime": "2017-07-19T12:17:08Z"
 		},
 		{
 			"checksumSHA1": "6QPjE+qflEBHg+JPJd9e4iQuRAk=",

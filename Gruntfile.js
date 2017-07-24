@@ -22,6 +22,19 @@ module.exports = function (grunt) {
             }
         },
 
+		less : {
+
+        	dev : {
+				options: {
+					paths: ['public/less']
+				},
+				files: {
+					'public/css/gogs.css': 'public/less/gogs.less'
+				}
+			}
+
+		},
+
         concat: {
             dist: {
                 src: [
@@ -242,6 +255,11 @@ watch: {
             tasks: ['sass']
         },
 
+		less: {
+			files: 'public/less/*.less',
+			tasks: ['less:dev']
+		},
+
         copy: {
             files: ['src/**/*.js', 'src/**/*.html'],
             tasks: ['copy']
@@ -265,6 +283,8 @@ grunt.loadNpmTasks('grunt-contrib-copy');
 grunt.loadNpmTasks('grunt-contrib-concat');
 grunt.loadNpmTasks('grunt-contrib-uglify');
 
-grunt.registerTask('build', ['sass', 'copy', 'concat', 'uglify']);
+grunt.loadNpmTasks('grunt-contrib-less');
+
+grunt.registerTask('build', ['sass', 'less:dev', 'copy', 'concat', 'uglify']);
 grunt.registerTask('default', ['build', 'watch']);
 };
