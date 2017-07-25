@@ -58,10 +58,24 @@ type Label struct {
 	RepoID          int64 `xorm:"INDEX"`
 	Name            string
 	Color           string `xorm:"VARCHAR(7)"`
+	LabelOrder      int
+	LabelGroup      string
 	NumIssues       int
 	NumClosedIssues int
 	NumOpenIssues   int  `xorm:"-"`
 	IsChecked       bool `xorm:"-"`
+}
+
+func (l *Label) BeforeInsert() {
+	if l.LabelGroup != "" {
+		l.LabelGroup = strings.ToLower(l.LabelGroup)
+	}
+}
+
+func (l *Label) BeforeUpdate() {
+	if l.LabelGroup != "" {
+		l.LabelGroup = strings.ToLower(l.LabelGroup)
+	}
 }
 
 func (label *Label) APIFormat() *api.Label {

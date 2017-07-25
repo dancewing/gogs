@@ -472,6 +472,15 @@ func runWeb(c *cli.Context) error {
 
 	m.Get("/:username/:reponame/action/:action", reqSignIn, context.RepoAssignment(), repo.Action)
 	m.Group("/:username/:reponame", func() {
+		m.Get("/board", repo.Board)
+		m.Group("/board", func() {
+			m.Get("/*", repo.Board)
+			m.Get("/full", repo.Board)
+			m.Get("/full/*", repo.Board)
+		})
+		m.Get("/board/full", repo.Board)
+		m.Get("/board/*", repo.Board)
+
 		m.Get("/issues", repo.RetrieveLabels, repo.Issues)
 		m.Get("/issues/:index", repo.ViewIssue)
 		m.Get("/labels/", repo.RetrieveLabels, repo.Labels)

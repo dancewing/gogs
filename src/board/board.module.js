@@ -1,4 +1,4 @@
-(function(angular, CLIENT_VERSION) {
+(function(angular, CLIENT_VERSION, BOARD_ROOT_PATH) {
     'use strict';
     /**
      * @todo избавиться от блоков resolve v будущем
@@ -15,7 +15,7 @@
             'mm.foundation.tabs',
             'angularFileUpload',
             'll.select'
-        ]).config(['$stateProvider', '$urlMatcherFactoryProvider', function($stateProvider, $urlMatcherFactoryProvider) {
+        ]).config(['$stateProvider', '$urlMatcherFactoryProvider',function($stateProvider, $urlMatcherFactoryProvider) {
             function valToString(val) {
                 return val != null ? val.toString() : val;
             }
@@ -49,7 +49,7 @@
 
             $stateProvider
                 .state('board', {
-                    url: '/boards',
+                    url: BOARD_ROOT_PATH,
                     views: {
                         '': {
                             templateUrl: 'assets/html/board/views/index.html'
@@ -63,21 +63,42 @@
                         access: 1
                     }
                 })
-                .state('board.boards', {
-                    url: '/',
-                    views: {
-                        'content@board': {
-                            templateUrl: 'assets/html/board/views/board/boards.html',
-                            controller: 'BoardListController'
-                        }
-                    },
-                    data: {
-                        access: 1
-                    }
-
-                })
+                // .state('board.boards', {
+                //     url: '/',
+                //     views: {
+                //         'content@board': {
+                //             templateUrl: 'assets/html/board/views/board/boards.html',
+                //             controller: 'BoardListController'
+                //         }
+                //     },
+                //     data: {
+                //         access: 1
+                //     }
+                //
+                // })
+                // .state('board.boards', {
+					// url: '/?tags&group',
+					// views: {
+					// 	'content@board': {
+					// 		templateUrl: 'assets/html/board/views/board/cards.html',
+					// 		controller: 'BoardController'
+					// 	},
+					// 	'top-bar@board': {
+					// 		templateUrl: 'assets/html/board/views/top_bar.html',
+					// 		controller: 'TopBarController'
+					// 	},
+					// 	'title@': {
+					// 		templateUrl: 'assets/html/board/views/title.html',
+					// 		controller: 'TopBarController'
+					// 	}
+					// },
+					// data: {
+					// 	access: 1
+					// }
+                //
+                // })
                 .state('board.cards', {
-                    url: '/{project_path:MyType}?tags&group',
+                    url: '/?tags&group',
                     views: {
                         'content@board': {
                             templateUrl: 'assets/html/board/views/board/cards.html',
@@ -97,7 +118,7 @@
                     }
                 })
                 .state('board.import', {
-                    url: '/{project_path:MyType}/import',
+                    url: '/import',
                     views: {
                         'content@board': {
                             templateUrl: 'assets/html/board/views/board/configuration.html',
@@ -175,4 +196,4 @@
         .constant('stage_regexp', /KB\[stage\]\[(\d+)\]\[(.*?)\]\[?(\d+)?\]?/)
         .constant('priority_regexp', /KB\[priority\]\[(-?\d+)\]\[(.*?)\]/)
         ;
-}) (window.angular, window.CLIENT_VERSION);
+}) (window.angular, window.CLIENT_VERSION, window.BOARD_ROOT_PATH);

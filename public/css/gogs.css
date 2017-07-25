@@ -12,7 +12,7 @@ body:not(.full-width) {
   min-width: 1020px;
 }
 .ui.container:not(.fluid) {
-  width: 980px !important;
+  width: 100% !important;
 }
 h1,
 h2,
@@ -64,7 +64,8 @@ code.wrap {
   hyphens: auto;
 }
 .full.height {
-  padding: 0;
+  width: 100%;
+  padding: 0 16px;
   margin: 0 0 -80px 0;
   min-height: 100%;
 }
@@ -901,6 +902,9 @@ footer .ui.language .menu {
   padding-top: 45px;
   padding-bottom: 80px;
 }
+.install .ui.container:not(.fluid) {
+  width: 1280px !important;
+}
 .install form label {
   text-align: right;
   width: 320px !important;
@@ -1124,6 +1128,9 @@ footer .ui.language .menu {
 .repository {
   padding-top: 15px;
   padding-bottom: 80px;
+}
+.repository .ui.container:not(.fluid) {
+  width: 1280px !important;
 }
 .repository .head .column {
   padding-top: 5px !important;
@@ -2739,6 +2746,9 @@ footer .ui.language .menu {
   padding-top: 15px;
   padding-bottom: 80px;
 }
+.organization .ui.container:not(.fluid) {
+  width: 1280px !important;
+}
 .organization .head .ui.header .text {
   vertical-align: middle;
   font-size: 1.6rem;
@@ -2864,6 +2874,9 @@ footer .ui.language .menu {
   padding-top: 15px;
   padding-bottom: 80px;
 }
+.user .ui.container:not(.fluid) {
+  width: 1280px !important;
+}
 .user.settings .list .item.ui.grid {
   margin-top: 15px;
 }
@@ -2946,6 +2959,9 @@ footer .ui.language .menu {
 .dashboard {
   padding-top: 15px;
   padding-bottom: 80px;
+}
+.dashboard .ui.container:not(.fluid) {
+  width: 1280px !important;
 }
 .dashboard.feeds .context.user.menu,
 .dashboard.issues .context.user.menu {
@@ -3136,6 +3152,9 @@ footer .ui.language .menu {
 .explore {
   padding-top: 15px;
   padding-bottom: 80px;
+}
+.explore .ui.container:not(.fluid) {
+  width: 1280px !important;
 }
 .explore .navbar .octicon {
   width: 16px;

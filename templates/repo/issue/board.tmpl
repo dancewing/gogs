@@ -3,21 +3,6 @@
 
 <head>
 
-	<link rel="apple-touch-icon" sizes="57x57" href="{{AppSubURL}}/img/favicons/apple-touch-icon-57x57.png">
-	<link rel="apple-touch-icon" sizes="60x60" href="{{AppSubURL}}/img/favicons/apple-touch-icon-60x60.png">
-	<link rel="apple-touch-icon" sizes="72x72" href="{{AppSubURL}}/img/favicons/apple-touch-icon-72x72.png">
-	<link rel="apple-touch-icon" sizes="76x76" href="{{AppSubURL}}/img/favicons/apple-touch-icon-76x76.png">
-	<link rel="apple-touch-icon" sizes="114x114" href="{{AppSubURL}}/img/favicons/apple-touch-icon-114x114.png">
-	<link rel="apple-touch-icon" sizes="120x120" href="{{AppSubURL}}/img/favicons/apple-touch-icon-120x120.png">
-	<link rel="apple-touch-icon" sizes="144x144" href="{{AppSubURL}}/img/favicons/apple-touch-icon-144x144.png">
-	<link rel="apple-touch-icon" sizes="152x152" href="{{AppSubURL}}/img/favicons/apple-touch-icon-152x152.png">
-	<link rel="apple-touch-icon" sizes="180x180" href="{{AppSubURL}}/img/favicons/apple-touch-icon-180x180.png">
-	<link rel="icon" type="image/png" href="{{AppSubURL}}/img/favicons/favicon-32x32.png" sizes="32x32">
-	<link rel="icon" type="image/png" href="{{AppSubURL}}/img/favicons/favicon-194x194.png" sizes="194x194">
-	<link rel="icon" type="image/png" href="{{AppSubURL}}/img/favicons/favicon-96x96.png" sizes="96x96">
-	<link rel="icon" type="image/png" href="{{AppSubURL}}/img/favicons/android-chrome-192x192.png" sizes="192x192">
-	<link rel="icon" type="image/png" href="{{AppSubURL}}/img/favicons/favicon-16x16.png" sizes="16x16">
-	<link rel="mask-icon" href="{{AppSubURL}}/img/favicons/safari-pinned-tab.svg" color="#ffffff">
 	<meta name="msapplication-TileColor" content="#da532c">
 	<meta name="msapplication-TileImage" content="{{AppSubURL}}/img/favicons/mstile-144x144.png">
 	<meta name="theme-color" content="#ffffff">
@@ -33,19 +18,52 @@
 		var ENABLE_SIGNUP = true;
 		var GIT_SERIVCE_HOST= '{{ .GitServiceHost}}';
 		var GIT_SERVICE_VENDOR = '{{ .GitServiceVendor}}';
-		var PROJECT_ID = 0;
-		var PROJECT_PATH = undefined;
+		var PROJECT_ID = {{.Repository.ID}};
+		var PROJECT_PATH = '{{.Owner.Name}}/{{.Repository.Name}}';
+{{if .BoardFullView}}
+		var BOARD_ROOT_PATH =  '/{{.Owner.Name}}/{{.Repository.Name}}/board/full';
+{{else}}
+		var BOARD_ROOT_PATH = '/{{.Owner.Name}}/{{.Repository.Name}}/board';
+{{end}}
+		var BOARD_FULL_VIEW = {{.BoardFullView}};
 	</script>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<link rel="stylesheet" href="{{AppSubURL}}/assets/octicons-4.3.0/octicons.min.css">
+	<link rel="stylesheet" href="{{AppSubURL}}/css/semantic-2.2.10.min.css">
+	<link rel="stylesheet" href="{{AppSubURL}}/css/gogs.css?v={{MD5 AppVer}}">
+
 	<link rel="stylesheet" href="{{AppSubURL}}/css/app.css">
 	<link rel="stylesheet" href="{{AppSubURL}}/css/ng-sortable.min.css">
 	<link rel="stylesheet" href="{{AppSubURL}}/css/loading-bar.css">
+
+
 	<!--<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,400italic,500,500italic,700,700italic,900,900italic&subset=latin,cyrillic,cyrillic-ext,greek-ext,greek,vietnamese,latin-ext' rel='stylesheet' type='text/css'>-->
 </head>
 
 <body>
-<div data-ui-view></div>
+
+
+{{if .BoardFullView}}
+			<div data-ui-view></div>
+{{else}}
+			<div class="full height">
+				{{template "base/top_nav" .}}
+
+				<div class="repository">
+					{{template "repo/header" .}}
+					<div class="ui container">
+						<div class="navbar">
+							{{template "repo/issue/navbar" .}}
+						</div>
+						<div class="ui divider"></div>
+
+						<div data-ui-view></div>
+					</div>
+				</div>
+			</div>
+{{end}}
 
 <script src="{{AppSubURL}}/js/board/angular.js"></script>
 <script src="{{AppSubURL}}/js/board/angular-ui-router.js"></script>

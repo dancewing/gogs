@@ -1,4 +1,4 @@
-<div data-ng-controller="TopBarController" class="fixed">
+<div data-ng-controller="TopBarController" class="{{topBarClass}}">
     <top-bar is-hover="false">
         <top-bar-section>
             <ul class="left" style="width: auto;">
@@ -63,9 +63,9 @@
                     </a>
                 </li>
                 <li>
-                    <a data-ng-click="logout()">
+                    <a data-ng-click="switchView()">
                         <i class="fa fa-sign-out"></i>
-                        <span class="hide-for-medium-down">&nbsp;&nbsp;Logout</span>
+                        <span class="hide-for-medium-down">&nbsp;&nbsp{{switchViewLabel}}</span>
                     </a>
                 </li>
             </ul>

@@ -38,6 +38,8 @@ const (
 	MILESTONE_EDIT = "repo/issue/milestone_edit"
 
 	ISSUE_TEMPLATE_KEY = "IssueTemplate"
+
+	BOARD = "repo/issue/board"
 )
 
 var (
@@ -246,11 +248,30 @@ func issues(c *context.Context, isPullList bool) {
 	c.HTML(200, ISSUES)
 }
 
+func Board(c *context.Context) {
+	c.Data["PageIsBoard"] = true
+
+	relpath := c.Repo.Owner.Name + "/" + c.Repo.Repository.Name + "/board"
+	fullpath := c.Repo.Owner.Name + "/" + c.Repo.Repository.Name + "/board/full"
+	path := c.Req.URL.Path
+	if strings.Index(path, fullpath) > 0 {
+		c.Data["BoardRootPath"] = fullpath
+		c.Data["BoardFullView"] = true
+	} else {
+		c.Data["BoardRootPath"] = relpath
+		c.Data["BoardFullView"] = false
+
+	}
+	c.HTML(200, BOARD)
+}
+
 func Issues(c *context.Context) {
+	c.Data["PageIsList"] = true
 	issues(c, false)
 }
 
 func Pulls(c *context.Context) {
+	c.Data["PageIsList"] = true
 	issues(c, true)
 }
 
@@ -992,6 +1013,17 @@ func InitializeLabels(c *context.Context, f form.InitializeLabels) {
 			Name:   list[i][0],
 			Color:  list[i][1],
 		}
+
+		if strings.Index(list[i][0], "/") > 0 {
+			labelAndGroup := strings.Split(list[i][0], "/")
+			if len(labelAndGroup) == 2 {
+				labels[i].LabelGroup = labelAndGroup[0]
+				labels[i].Name = labelAndGroup[1]
+			}
+		} else {
+			labels[i].LabelGroup = ""
+		}
+
 	}
 	if err := models.NewLabels(labels...); err != nil {
 		c.Handle(500, "NewLabels", err)

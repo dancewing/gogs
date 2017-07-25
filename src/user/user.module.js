@@ -1,4 +1,4 @@
-(function(angular, CLIENT_VERSION) {
+(function(angular, CLIENT_VERSION, PROJECT_PATH, BOARD_ROOT_PATH) {
     'use strict';
 
     angular.module('gitlabKBApp.user', ['ui.router', 'angular-storage']).config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
@@ -31,7 +31,12 @@
                     access: 0
                 }
             });
-        $urlRouterProvider.otherwise('/');
+		$urlRouterProvider.otherwise(
+			function($injector, $location) {
+				window.location.href= $location.url();
+			});
+
+
     }]).config(['$httpProvider', function($httpProvider) {
         $httpProvider.interceptors.push(['$q', '$injector', 'store', function($q, $injector, store) {
             return {
@@ -62,4 +67,4 @@
             };
         }]);
     }]);
-})(window.angular, window.CLIENT_VERSION);
+})(window.angular, window.CLIENT_VERSION, window.PROJECT_PATH, window.BOARD_ROOT_PATH);

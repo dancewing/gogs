@@ -14,7 +14,8 @@
         'WebsocketService',
         'MilestoneService',
         'LabelService',
-        function($scope, $http, $stateParams, BoardService, $state, $window, UserService, stage_regexp, $rootScope, WebsocketService, MilestoneService, LabelService) {
+        'project_path',
+        function($scope, $http, $stateParams, BoardService, $state, $window, UserService, stage_regexp, $rootScope, WebsocketService, MilestoneService, LabelService, project_path) {
             $window.scrollTo(0, 0);
 
             var filter = function(item) {
@@ -37,6 +38,8 @@
             if ($stateParams.tags) {
                 tags = tags.concat($stateParams.tags);
             }
+
+            console.log(PROJECT_PATH);
 
             if (!_.isEmpty(tags)) {
                 var fByUser = false,
@@ -117,8 +120,9 @@
                     }
                 };
             }
+			var project_path = $stateParams.project_path || project_path;
 
-            BoardService.get($stateParams.project_path).then(function(board) {
+            BoardService.get(project_path).then(function(board) {
                 if (_.isEmpty(board.stages)) {
                     $state.go('board.import', {
                         project_id: board.project.id,
