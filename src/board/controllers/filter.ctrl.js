@@ -8,15 +8,20 @@
         'BoardService',
         'UserService',
         'MilestoneService',
-        function($scope, $state, $stateParams, BoardService, UserService, MilestoneService) {
+        'project_id',
+        'project_path',
+        function($scope, $state, $stateParams, BoardService, UserService, MilestoneService, project_id, project_path) {
             var labels = [],
                 milestones = [],
                 users = [],
                 priority = [];
 
+            var projectId = $stateParams.project_id || project_id;
+            var projectPath = $stateParams.project_path || project_path;
+
             this.tags = _.isArray($stateParams.tags) ? $stateParams.tags : [$stateParams.tags];
 
-            BoardService.get($stateParams.project_path).then(function(board) {
+            BoardService.get(projectPath).then(function(board) {
                 this.labels = _.toArray(board.viewLabels);
                 this.priorities = board.priorities;
 
@@ -35,8 +40,8 @@
              */
             this.apply = function(tag) {
                 var params = {
-                    project_id: $stateParams.project_id,
-                    project_path: $stateParams.project_path,
+                    project_id: projectId,
+                    project_path: projectPath,
                     tags: $stateParams.tags
                 };
 
@@ -63,8 +68,8 @@
 
             this.applyAll = function(tagPrefix, tags, identifyBy, enable) {
                 var params = {
-                    project_id: $stateParams.project_id,
-                    project_path: $stateParams.project_path,
+                    project_id: projectId,
+                    project_path: projectPath,
                     tags: Array.isArray($stateParams.tags) ? $stateParams.tags : $stateParams.tags ? [$stateParams.tags] : []
                 };
 

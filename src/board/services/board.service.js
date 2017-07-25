@@ -7,10 +7,9 @@
         'LabelService',
         'WebsocketService',
         'Board',
-        'stage_regexp',
         'UserService',
         'MilestoneService',
-        function($http, $q, $sce, LabelService, WebsocketService, Board, stage_regexp, UserService, MilestoneService) {
+        function($http, $q, $sce, LabelService, WebsocketService, Board, UserService, MilestoneService) {
             var service = {
                 current: {},
                 boards: {},
@@ -29,11 +28,7 @@
                             project = project.data.data;
                             this.boards[path] = $q.all([
                                 LabelService.list(project.path_with_namespace, withCache),
-                                $http.get('/api/boards/' + project.path_with_namespace + "/cards", {
-                                    params: {
-                                        project_id: project.id
-                                    }
-                                })
+                                $http.get('/api/boards/' + project.path_with_namespace + "/cards")
                             ]).then(function(results) {
                                 var board = new Board(results[0], results[1].data.data, project);
                                 this.boards[path] = board;
@@ -160,7 +155,8 @@
                 changeProject: function(board, card, project) {
                     return LabelService.getStageByName(project.path_with_namespace, card.stage.viewName).then(function(stage){
                         card.labels = _.filter(card.labels, function(label) {
-                            return !stage_regexp.test(label);
+                           // return !stage_regexp.test(label);
+                            return label.group != 'stage';
                         });
                         if (stage) {
                             card.labels.push(stage.name);
@@ -288,7 +284,8 @@
                                 }
 
                                 card.labels = _.filter(card.labels, function(label) {
-                                    return !stage_regexp.test(label);
+                                   // return !stage_regexp.test(label);
+                                    return label.group != 'stage';
                                 });
 
                                 if (newLabel == "") {

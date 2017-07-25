@@ -17,7 +17,7 @@ type Card struct {
 	Milestone         *Milestone   `json:"milestone"`
 	Author            *User        `json:"author"`
 	Description       string       `json:"description"`
-	Labels            *[]string    `json:"labels"`
+	Labels            []*Label    `json:"labels"`
 	ProjectId         int64        `json:"project_id"`
 	BoardID           string       `json:"board_id"`
 	PathWithNamespace string       `json:"path_with_namespace"`

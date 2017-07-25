@@ -11,14 +11,9 @@
             'angular-storage'
         ])
         .run([
-            '$rootScope', '$state', '$http', 'AuthService', 'store', 'project_id', 'project_path',
-            function($rootScope, $state, $http, AuthService, store, project_id, project_path) {
-                if (AuthService.isAuthenticated()) {
-                    $http.defaults.headers.common['X-KB-Access-Token'] = AuthService.getCurrent();
-                }
-
+            '$rootScope', '$state', '$http', 'AuthService', 'store',
+            function($rootScope, $state, $http, AuthService, store) {
                 $rootScope.$on('$stateChangeStart', function(event, toState, toParams) {
-                	console.log("tostate : " + toState);
                     if (!AuthService.authorized(toState)) {
                         event.preventDefault();
                         if (!store.get('state')) {

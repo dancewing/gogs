@@ -192,8 +192,5 @@
             $markdownProvider.registerPlugin(window.md_user_link_plugin)
             $markdownProvider.registerPlugin(window.md_label_plugin)
             $markdownProvider.registerPlugin(window.md_milestone_link_plugin);
-        }])
-        .constant('stage_regexp', /KB\[stage\]\[(\d+)\]\[(.*?)\]\[?(\d+)?\]?/)
-        .constant('priority_regexp', /KB\[priority\]\[(-?\d+)\]\[(.*?)\]/)
-        ;
+        }]);
 }) (window.angular, window.CLIENT_VERSION, window.BOARD_ROOT_PATH);

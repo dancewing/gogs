@@ -5,12 +5,11 @@
         'BoardService',
         '$stateParams',
         '$scope',
-        'stage_regexp',
         '$http',
         SettingsController
     ]);
 
-    function SettingsController(LabelService, BoardService, $stateParams, $scope, stage_regexp, $http) {
+    function SettingsController(LabelService, BoardService, $stateParams, $scope, $http) {
 
         function getLabelString(stage) {
             var label = "KB[stage][" + stage.index +

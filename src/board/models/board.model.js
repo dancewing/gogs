@@ -6,11 +6,9 @@
             'UserService',
             'Stage',
             'State',
-            'stage_regexp',
-            'priority_regexp',
             'LabelService',
             '$rootScope',
-            function (UserService, Stage, State, stage_regexp, priority_regexp, LabelService, $rootScope) {
+            function (UserService, Stage, State, LabelService, $rootScope) {
                 function Board(labels, issues, project) {
                     this.stages = [];
 
@@ -32,18 +30,36 @@
 
                     this.initViewLabels = function (issue) {
                         issue.viewLabels = [];
-                        issue.stage = LabelService.getStage(project.path_with_namespace,
-                            _.find(issue.labels, function(l){return stage_regexp.test(l)}
-                        ));
+
+                        var issueStage = _.find(issue.labels, function(l){return l.group == 'stage';});
+                        if (issueStage) {
+							issue.stage = LabelService.getStage(project.path_with_namespace, issueStage.name );
+						}
+						//issue.stage = this.getCardStage(issue);
+
                         if (! issue.stage) {
-                            issue.stage = this.stages[0];
+                           // issue.stage = this.stages[0];
+                            issue.stage = new Stage();
                         }
-                        issue.priority = LabelService.getPriority(project.path_with_namespace, _.intersection(this.priorityLabels, issue.labels)[0]);
+
+						var issuePriority = _.find(issue.labels, function(l){return l.group == 'priority';});
+						if (issuePriority) {
+							issue.priority = LabelService.getPriority(project.path_with_namespace, issuePriority.name );
+						} else {
+							issue.priority = LabelService.getPriority(project.path_with_namespace, "");
+						}
+
+                       // issue.priority = LabelService.getPriority(project.path_with_namespace, _.intersection(this.priorityLabels, issue.labels)[0]);
+						//issue.priority = _.find(issue.labels, function(l){return l.group == 'priority'});
+
+						// issue.priority = LabelService.getStage(project.path_with_namespace,
+						// 	_.find(issue.labels, function(l){return l.group == 'priority';}
+						// 	).name);
 
                         if (!_.isEmpty(issue.labels)) {
                             var labels = issue.labels;
                             for (var i = 0; i < labels.length; i++) {
-                                var label = this.viewLabels[labels[i]];
+                                var label = this.viewLabels[labels[i].name];
                                 if (label !== undefined) {
                                     issue.viewLabels.push(label);
                                 }
@@ -78,21 +94,31 @@
                         var old = this.getCardById(card.id);
 
                         if (_.isEmpty(old)) {
-                            card.stage = LabelService.getStage(project.path_with_namespace,
-                                _.find(card.labels, function(l){return stage_regexp.test(l)}
-                            ));
+                            // card.stage = LabelService.getStage(project.path_with_namespace,
+                            //     _.find(card.labels, function(l){return l.group == 'stage'}
+                            // ));
+							card.stage = this.getCardStage(card);
                             this.initViewLabels(card);
                             this.issues.push(card);
                             $rootScope.$emit('board.change');
                         }
                     };
 
+                    this.getCardStage = function (issue) {
+						var issueStage = _.find(issue.labels, function(l){return l.group == 'stage';});
+						if (issueStage) {
+							return LabelService.getStage(project.path_with_namespace, issueStage.name );
+						}
+						return null;
+					};
+
                     this.update = function (card) {
                         var old = this.getCardById(card.id);
                         _.extend(old, card);
-                        old.stage = LabelService.getStage(project.path_with_namespace,
-                            _.find(old.labels, function(l){return stage_regexp.test(l)}
-                        ));
+                        // old.stage = LabelService.getStage(project.path_with_namespace,
+                        //     _.find(old.labels, function(l){return l.group == 'stage'}
+                        // ));
+                        old.stage = this.getCardStage(card);
                         this.initViewLabels(old);
                         $rootScope.$emit('board.change');
                     };

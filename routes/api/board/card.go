@@ -13,9 +13,6 @@ import (
 
 // ListCards gets a list of card on board accessible by the authenticated user.
 func ListCards(ctx *context.APIContext) {
-	//pr := ctx.QueryInt64("project_id")
-
-	//proj, _, err := ctx.DataSource.ListConnectBoard(pr)
 
 	proj, _, err := ListConnectBoardFromCache(ctx, ctx.Repo.Repository.ID)
 
@@ -27,7 +24,6 @@ func ListCards(ctx *context.APIContext) {
 		return
 	}
 
-	//current, err := ctx.DataSource.ItemBoard(pr)
 	current, err := GetItemBoardByID(ctx.Repo.Repository.ID)
 
 	if err != nil {

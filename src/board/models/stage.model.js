@@ -1,8 +1,7 @@
 (function(angular) {
     'use strict';
 
-    angular.module('gitlabKBApp.board').factory('Stage',[
-        'stage_regexp', function(stage_regexp) {
+    angular.module('gitlabKBApp.board').factory('Stage',[function() {
             function Stage(label) {
                 if (_.isEmpty(label)) {
                     return {
@@ -10,15 +9,15 @@
                         color: '#fffff'
                     }
                 }
-                var stage = stage_regexp.exec(label.name);
-                return {
-                    id: label.name,
-                    name: label.name,
-                    index: parseInt(stage[1]),
-                    color: label.color,
-                    viewName: stage[2],
-                    wip: stage[3]
-                };
+
+				return {
+					id: label.id,
+					name: label.name,
+					index: label.order,
+					color: label.color,
+					viewName: label.name,
+					wip: undefined
+				};
             }
 
             return Stage;

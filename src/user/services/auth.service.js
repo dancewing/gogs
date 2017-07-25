@@ -6,23 +6,13 @@
             '$http',
             '$q',
             'store',
-            function ($http, $q, store) {
+            'project_path',
+            function ($http, $q, store, project_path) {
                 return {
                     current: undefined,
                     roles: {
                         anon: 0,
                         user: 1
-                    },
-                    register: function (data) {
-                        return $http.post('/api/register', {
-                            _username: data.username,
-                            _email: data.email,
-                            _password: data.password,
-                            _token: data.token
-                        }).then(function (result) {
-                            store.set('id_token', result.data.token);
-                            return store.get('id_token');
-                        });
                     },
                     authenticate: function (data) {
                         return $http.post('/api/login', {
@@ -34,15 +24,13 @@
                         });
                     },
                     getCurrent: function () {
-
-                    	if (store.get('id_token')!==null) return store.get('id_token');
-
-						return $http.get('/api/current').then(function (result) {
-							store.set('id_token', result.data);
-							return store.get('id_token');
-						});
-
-                      //  return store.get('id_token');
+                    	if (this.current === undefined) {
+							return $http.get('/api/boards/'+ project_path +'/current').then(function (result) {
+								this.current = result.data;
+								return this.current;
+							}.bind(this));
+						}
+						return $q.when(this.current);
                     },
                     isAuthenticated: function () {
                         return this.getCurrent() !== null;
@@ -52,9 +40,6 @@
                         return !!(this.isAuthenticated()
                         || state.data.access === undefined
                         || state.data.access == roles.anon);
-                    },
-                    logout: function() {
-                        return store.remove('id_token');
                     }
                 };
             }

@@ -9,13 +9,12 @@
         '$state',
         '$window',
         'UserService',
-        'stage_regexp',
         '$rootScope',
         'WebsocketService',
         'MilestoneService',
         'LabelService',
         'project_path',
-        function($scope, $http, $stateParams, BoardService, $state, $window, UserService, stage_regexp, $rootScope, WebsocketService, MilestoneService, LabelService, project_path) {
+        function($scope, $http, $stateParams, BoardService, $state, $window, UserService, $rootScope, WebsocketService, MilestoneService, LabelService, project_path) {
             $window.scrollTo(0, 0);
 
             var filter = function(item) {
@@ -38,8 +37,6 @@
             if ($stateParams.tags) {
                 tags = tags.concat($stateParams.tags);
             }
-
-            console.log(PROJECT_PATH);
 
             if (!_.isEmpty(tags)) {
                 var fByUser = false,

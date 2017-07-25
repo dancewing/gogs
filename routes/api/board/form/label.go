@@ -18,6 +18,8 @@ type Label struct {
 	OpenMergeRequestCount int    `json:"open_merge_requests_count"`
 	Subscribed            bool   `json:"subscribed"`
 	Priority              int    `json:"priority"`
+	Group                 string `json:"group"`
+	Order                 int    `json:"order"`
 }
 
 // Stage represent board stage
@@ -62,16 +64,22 @@ func MapLabelFromGogs(l *models.Label) *Label {
 		OpenMergeRequestCount: 0,
 		Subscribed:            false,
 		Priority:              0,
+		Group:                 l.LabelGroup,
+		Order:                 l.LabelOrder,
 	}
 }
 
-func MapLabelsFromGogs(labels []*models.Label) *[]string {
+func MapLabelsFromGogs(labels []*models.Label) []*Label {
 
-	result := make([]string, len(labels))
-
-	for i:= range labels {
-		result[i] = labels[i].Name
+	if labels == nil {
+		return nil
 	}
 
-	return &result;
+	result := make([]*Label, len(labels))
+
+	for i := range labels {
+		result[i] = MapLabelFromGogs(labels[i])
+	}
+
+	return result
 }
