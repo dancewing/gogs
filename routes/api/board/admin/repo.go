@@ -8,8 +8,8 @@ import (
 	api "github.com/gogits/go-gogs-client"
 
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/repo"
-	"github.com/gogits/gogs/routes/api/v2/user"
+	"github.com/gogits/gogs/routes/api/board/repo"
+	"github.com/gogits/gogs/routes/api/board/user"
 )
 
 // https://github.com/gogits/go-gogs-client/wiki/Administration-Repositories#create-a-new-repository

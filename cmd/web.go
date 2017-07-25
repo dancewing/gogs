@@ -38,7 +38,7 @@ import (
 	"github.com/gogits/gogs/pkg/template"
 	"github.com/gogits/gogs/routes"
 	"github.com/gogits/gogs/routes/admin"
-	apiv2 "github.com/gogits/gogs/routes/api/v2"
+	apiboard "github.com/gogits/gogs/routes/api/board"
 	//	"github.com/gogits/gogs/routes/dev"
 	"github.com/go-macaron/sockets"
 	"github.com/gogits/gogs/pkg/ws"
@@ -666,7 +666,7 @@ func runWeb(c *cli.Context) error {
 
 	m.Group("/api", func() {
 		//apiv1.RegisterRoutes(m)
-		apiv2.RegisterKBRoutes(m)
+		apiboard.RegisterKBRoutes(m)
 	}, ignSignIn)
 
 	// robots.txt

@@ -14,7 +14,7 @@ import (
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/models/errors"
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/convert"
+	"github.com/gogits/gogs/routes/api/board/convert"
 )
 
 // https://github.com/gogits/go-gogs-client/wiki/Repositories#list-hooks

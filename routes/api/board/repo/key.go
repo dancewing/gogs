@@ -12,7 +12,7 @@ import (
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/pkg/context"
 	"github.com/gogits/gogs/pkg/setting"
-	"github.com/gogits/gogs/routes/api/v2/convert"
+	"github.com/gogits/gogs/routes/api/board/convert"
 )
 
 func composeDeployKeysAPILink(repoPath string) string {

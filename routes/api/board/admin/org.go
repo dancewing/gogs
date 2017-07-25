@@ -9,8 +9,8 @@ import (
 
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/convert"
-	"github.com/gogits/gogs/routes/api/v2/user"
+	"github.com/gogits/gogs/routes/api/board/convert"
+	"github.com/gogits/gogs/routes/api/board/user"
 )
 
 // https://github.com/gogits/go-gogs-client/wiki/Administration-Organizations#create-a-new-organization

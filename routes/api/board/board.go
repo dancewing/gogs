@@ -1,12 +1,12 @@
-package v2
+package board
 
 import (
 	"net/http"
 
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
-	"github.com/gogits/gogs/routes/api/v2/repo"
+	"github.com/gogits/gogs/routes/api/board/gitlab"
+	"github.com/gogits/gogs/routes/api/board/repo"
 )
 
 var (

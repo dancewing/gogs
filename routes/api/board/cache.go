@@ -1,4 +1,4 @@
-package v2
+package board
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/gogits/gogs/pkg/context"
 	"github.com/gogits/gogs/pkg/tool"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
+	"github.com/gogits/gogs/routes/api/board/gitlab"
 )
 
 // CreateConnectBoard connects other board to current

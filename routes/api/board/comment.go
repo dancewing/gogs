@@ -1,8 +1,8 @@
-package v2
+package board
 
 import (
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
+	"github.com/gogits/gogs/routes/api/board/gitlab"
 )
 
 // ListComments gets a list of comment on board and card

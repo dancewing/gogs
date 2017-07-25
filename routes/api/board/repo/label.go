@@ -12,7 +12,7 @@ import (
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/pkg/context"
 	"github.com/gogits/gogs/pkg/form"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
+	"github.com/gogits/gogs/routes/api/board/gitlab"
 )
 
 var (

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
-package v2
+package board
 
 import (
 	"strings"
@@ -18,12 +18,12 @@ import (
 	"github.com/gogits/gogs/models/errors"
 	"github.com/gogits/gogs/pkg/context"
 	"github.com/gogits/gogs/pkg/form"
-	"github.com/gogits/gogs/routes/api/v2/admin"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
-	"github.com/gogits/gogs/routes/api/v2/misc"
-	"github.com/gogits/gogs/routes/api/v2/org"
-	"github.com/gogits/gogs/routes/api/v2/repo"
-	"github.com/gogits/gogs/routes/api/v2/user"
+	"github.com/gogits/gogs/routes/api/board/admin"
+	"github.com/gogits/gogs/routes/api/board/gitlab"
+	"github.com/gogits/gogs/routes/api/board/misc"
+	"github.com/gogits/gogs/routes/api/board/org"
+	"github.com/gogits/gogs/routes/api/board/repo"
+	"github.com/gogits/gogs/routes/api/board/user"
 )
 
 func repoAssignment() macaron.Handler {

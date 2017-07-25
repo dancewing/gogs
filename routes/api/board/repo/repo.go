@@ -18,8 +18,8 @@ import (
 	"github.com/gogits/gogs/pkg/context"
 	"github.com/gogits/gogs/pkg/form"
 	"github.com/gogits/gogs/pkg/setting"
-	"github.com/gogits/gogs/routes/api/v2/convert"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
+	"github.com/gogits/gogs/routes/api/board/convert"
+	"github.com/gogits/gogs/routes/api/board/gitlab"
 )
 
 // https://github.com/gogits/go-gogs-client/wiki/Repositories#search-repositories

@@ -8,7 +8,7 @@ import (
 	api "github.com/gogits/go-gogs-client"
 
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/convert"
+	"github.com/gogits/gogs/routes/api/board/convert"
 )
 
 func ListTeams(c *context.APIContext) {

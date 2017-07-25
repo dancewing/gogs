@@ -1,10 +1,10 @@
-package v2
+package board
 
 import (
 	"net/http"
 
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
+	"github.com/gogits/gogs/routes/api/board/gitlab"
 )
 
 // ListMembers gets a list of member on board accessible by the authenticated user.

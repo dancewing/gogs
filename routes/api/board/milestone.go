@@ -1,11 +1,11 @@
-package v2
+package board
 
 import (
 	"net/http"
 
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/v2/gitlab"
+	"github.com/gogits/gogs/routes/api/board/gitlab"
 )
 
 // ListMilestones gets a list of milestone on board accessible by the authenticated user.
