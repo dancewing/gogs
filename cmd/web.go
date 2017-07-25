@@ -656,14 +656,6 @@ func runWeb(c *cli.Context) error {
 	})
 	// ***** END: Repository *****
 
-	m.Get("/boards", reqSignIn, routes.Board)
-	m.Get("/boards/*", reqSignIn, routes.Board)
-
-	m.Group("/projects", func() {
-		//m.Get("", project.ListProject)
-		//m.Get("/my", reqSignIn, project.ListProject)
-	})
-
 	m.Group("/project", func() {
 		m.Get("/create", project.Create, reqSignIn)
 		m.Post("/create", bindIgnErr(form.CreateProject{}), project.CreatePost, reqSignIn)

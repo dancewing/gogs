@@ -249,6 +249,8 @@ func issues(c *context.Context, isPullList bool) {
 }
 
 func Board(c *context.Context) {
+
+	c.Data["PageIsIssueList"] = true
 	c.Data["PageIsBoard"] = true
 
 	relpath := c.Repo.Owner.Name + "/" + c.Repo.Repository.Name + "/board"

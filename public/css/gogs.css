@@ -1233,7 +1233,7 @@ footer .ui.language .menu {
 }
 .repository .ui.tabs.divider {
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 20px !important;
 }
 .repository #clone-panel {
   margin-top: -8px;
