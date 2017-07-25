@@ -666,7 +666,7 @@ func runWeb(c *cli.Context) error {
 
 	m.Group("/api", func() {
 		//apiv1.RegisterRoutes(m)
-		apiboard.RegisterKBRoutes(m)
+		apiboard.RegisterBoardRoutes(m)
 	}, ignSignIn)
 
 	// robots.txt

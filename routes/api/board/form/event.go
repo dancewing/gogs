@@ -1,4 +1,4 @@
-package gitlab
+package form
 
 type Response struct {
 	Data interface{} `json:"data"`

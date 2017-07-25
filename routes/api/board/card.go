@@ -5,7 +5,7 @@ import (
 
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/board/gitlab"
+	"github.com/gogits/gogs/routes/api/board/form"
 
 	"github.com/gogits/gogs/models/errors"
 	log "gopkg.in/clog.v1"
@@ -20,7 +20,7 @@ func ListCards(ctx *context.APIContext) {
 	proj, _, err := ListConnectBoardFromCache(ctx, ctx.Repo.Repository.ID)
 
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, &gitlab.ResponseError{
+		ctx.JSON(http.StatusNotFound, &form.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
@@ -31,7 +31,7 @@ func ListCards(ctx *context.APIContext) {
 	current, err := GetItemBoardByID(ctx.Repo.Repository.ID)
 
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, &gitlab.ResponseError{
+		ctx.JSON(http.StatusNotFound, &form.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
@@ -40,7 +40,7 @@ func ListCards(ctx *context.APIContext) {
 
 	proj = append(proj, current)
 
-	var cards, c []*gitlab.Card
+	var cards, c []*form.Card
 
 	for _, p := range proj {
 		c, err = listCards(p.Id)
@@ -48,36 +48,36 @@ func ListCards(ctx *context.APIContext) {
 	}
 
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, &gitlab.ResponseError{
+		ctx.JSON(http.StatusUnauthorized, &form.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, &gitlab.Response{
+	ctx.JSON(http.StatusOK, &form.Response{
 		Data: cards,
 	})
 }
 
-func listCards(projectId int64) ([]*gitlab.Card, error) {
+func listCards(projectId int64) ([]*form.Card, error) {
 	issues, err := models.Issues(&models.IssuesOptions{
 		RepoID: projectId,
 	})
-	apiIssues := make([]*gitlab.Card, len(issues))
+	apiIssues := make([]*form.Card, len(issues))
 	for i := range issues {
 		if err = issues[i].LoadAttributes(); err != nil {
 			// c.Error(500, "LoadAttributes", err)
 			//return
 		}
-		apiIssues[i] = gitlab.MapCardFromGogs(issues[i])
+		apiIssues[i] = form.MapCardFromGogs(issues[i])
 	}
 
 	return apiIssues, nil
 }
 
 // CreateCard creates a new board card.
-func CreateCard(ctx *context.APIContext, form gitlab.CardRequest) {
+func CreateCard(ctx *context.APIContext, form form.CardRequest) {
 	//card, code, err := ctx.DataSource.CreateCard(&form)
 	//
 	//if err != nil {
@@ -101,7 +101,7 @@ func CreateCard(ctx *context.APIContext, form gitlab.CardRequest) {
 }
 
 // UpdateCard updates an existing board card.
-func UpdateCard(ctx *context.APIContext, form gitlab.CardRequest) {
+func UpdateCard(ctx *context.APIContext, form form.CardRequest) {
 	//card, code, err := ctx.DataSource.UpdateCard(&form)
 	//
 	//if err != nil {
@@ -125,7 +125,7 @@ func UpdateCard(ctx *context.APIContext, form gitlab.CardRequest) {
 }
 
 // DeleteCard closed an existing board card.
-func DeleteCard(ctx *context.APIContext, form gitlab.CardRequest) {
+func DeleteCard(ctx *context.APIContext, form form.CardRequest) {
 	//card, code, err := ctx.DataSource.DeleteCard(&form)
 	//
 	//if err != nil {
@@ -148,7 +148,7 @@ func DeleteCard(ctx *context.APIContext, form gitlab.CardRequest) {
 }
 
 // MoveToCard updates an existing board card.
-func MoveToCard(ctx *context.APIContext, f gitlab.CardRequest) {
+func MoveToCard(ctx *context.APIContext, f form.CardRequest) {
 
 	issue, err := models.GetIssueByID(f.CardId)
 	if err != nil {
@@ -233,13 +233,13 @@ func MoveToCard(ctx *context.APIContext, f gitlab.CardRequest) {
 		return
 	}
 
-	card:=gitlab.MapCardFromGogs(issue)
+	card:= form.MapCardFromGogs(issue)
 
-	ctx.JSON(http.StatusOK, &gitlab.Response{
+	ctx.JSON(http.StatusOK, &form.Response{
 		Data: card,
 	})
 
-	ctx.Broadcast(card.RoutingKey(), &gitlab.Response{
+	ctx.Broadcast(card.RoutingKey(), &form.Response{
 		Data:  card,
 		Event: "card.move",
 	})
@@ -258,7 +258,7 @@ func MoveToCard(ctx *context.APIContext, f gitlab.CardRequest) {
 }
 
 // ChangeProjectForCard locate card to another project
-func ChangeProjectForCard(ctx *context.APIContext, form gitlab.CardRequest) {
+func ChangeProjectForCard(ctx *context.APIContext, form form.CardRequest) {
 	//oldCrard := gitlab.Card{
 	//	Id:        form.CardId,
 	//	ProjectId: form.ProjectId,

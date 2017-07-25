@@ -2,7 +2,7 @@ package board
 
 import (
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/board/gitlab"
+	"github.com/gogits/gogs/routes/api/board/form"
 )
 
 // ListComments gets a list of comment on board and card
@@ -24,7 +24,7 @@ func ListComments(ctx *context.APIContext) {
 }
 
 // CreateComment creates new kanban comment
-func CreateComment(ctx *context.APIContext, form gitlab.CommentRequest) {
+func CreateComment(ctx *context.APIContext, form form.CommentRequest) {
 	//com, code, err := ctx.DataSource.CreateComment(&form)
 	//
 	//if err != nil {

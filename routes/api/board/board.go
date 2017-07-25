@@ -5,8 +5,7 @@ import (
 
 	"github.com/gogits/gogs/models"
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/board/gitlab"
-	"github.com/gogits/gogs/routes/api/board/repo"
+	"github.com/gogits/gogs/routes/api/board/form"
 )
 
 var (
@@ -19,73 +18,42 @@ var (
 	}
 )
 
-// ListBoards gets a list of board accessible by the authenticated user.
-func ListBoards(ctx *context.APIContext) {
-	repo.ListMyRepos(ctx)
-}
-
-// ListStarredBoards gets a list starred boards
-func ListStarredBoards(ctx *context.APIContext) {
-	repo.ListMyRepos(ctx)
-}
-
 // ItemBoard gets a specific board, identified by project ID or
 // NAMESPACE/BOARD_NAME, which is owned by the authenticated user.
 func ItemBoard(ctx *context.APIContext) {
 
 	//TODO check privileges
 
-	//fullPath := ctx.Query("project_id")
-	//
-	//repo, err := models.GetRepositoryByRef(fullPath)
-	//
-	////repo, err := models.GetRepositoryByID(ctx.QueryInt64("project_id"))
-	//
-	//if err != nil {
-	//	if err, ok := err.(gitlab.ReceivedDataErr); ok {
-	//		ctx.JSON(err.StatusCode, &gitlab.ResponseError{
-	//			Success: false,
-	//			Message: err.Error(),
-	//		})
-	//		return
-	//	}
-	//	ctx.JSON(http.StatusInternalServerError, &gitlab.ResponseError{
-	//		Success: false,
-	//		Message: err.Error(),
-	//	})
-	//	return
-	//}
-
 	err := ctx.Repo.Repository.LoadAttributes()
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, &gitlab.ResponseError{
+		ctx.JSON(http.StatusInternalServerError, &form.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
 		return
 	}
 
-	board := gitlab.MapBoardFromGogs(ctx.Repo.Repository)
+	board := form.MapBoardFromGogs(ctx.Repo.Repository)
 
-	ctx.JSON(200, &gitlab.Response{
+	ctx.JSON(200, &form.Response{
 		Data: board,
 	})
 
 }
 
-func GetItemBoardByID(BoardID int64) (*gitlab.Board, error) {
+func GetItemBoardByID(BoardID int64) (*form.Board, error) {
 	repo, err := models.GetRepositoryByID(BoardID)
 
 	if err != nil {
 		return nil, err
 	}
-	board := gitlab.MapBoardFromGogs(repo)
+	board := form.MapBoardFromGogs(repo)
 	return board, nil
 }
 
 // Configure configure gitlab repository for usage board
-func Configure(c *context.APIContext, form gitlab.BoardRequest) {
+func Configure(c *context.APIContext, f form.BoardRequest) {
 
 	//if !c.Repo.IsWriter() {
 	//	c.Status(403)
@@ -109,32 +77,32 @@ func Configure(c *context.APIContext, form gitlab.BoardRequest) {
 		}
 	}
 
-	apiLabels := make([]*gitlab.Label, len(labels))
+	apiLabels := make([]*form.Label, len(labels))
 	for i := range labels {
-		apiLabels[i] = gitlab.MapLabelFromGogs(labels[i])
+		apiLabels[i] = form.MapLabelFromGogs(labels[i])
 	}
-	c.JSON(200, &gitlab.Response{
+	c.JSON(200, &form.Response{
 		Data: &apiLabels,
 	})
 
 }
 
 // CreateConnectBoard add other repository to current board
-func CreateConnectBoard(ctx *context.APIContext, form gitlab.BoardRequest) {
+func CreateConnectBoard(ctx *context.APIContext, f form.BoardRequest) {
 
-	status, err := CreateConnectBoardToCache(ctx, ctx.ParamsInt64(":board"), form.BoardId)
+	status, err := CreateConnectBoardToCache(ctx, ctx.ParamsInt64(":board"), f.BoardId)
 
 	//status, err := ctx.DataSource.CreateConnectBoard(ctx.Params(":board"), form.BoardId)
 	//
 	if err != nil {
-		ctx.JSON(status, &gitlab.ResponseError{
+		ctx.JSON(status, &form.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, &gitlab.Response{})
+	ctx.JSON(http.StatusOK, &form.Response{})
 }
 
 // ListConnectBoard gets list connected boards
@@ -145,14 +113,14 @@ func ListConnectBoard(ctx *context.APIContext) {
 	//boards, status, err := ctx.DataSource.ListConnectBoard(ctx.Params(":board"))
 	//
 	if err != nil {
-		ctx.JSON(status, &gitlab.ResponseError{
+		ctx.JSON(status, &form.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, &gitlab.Response{
+	ctx.JSON(http.StatusOK, &form.Response{
 		Data: boards,
 	})
 }
@@ -165,7 +133,7 @@ func DeleteConnectBoard(ctx *context.APIContext) {
 	//status, err := ctx.DataSource.DeleteConnectBoard(ctx.Params(":board"), ctx.Query("board_id"))
 	//
 	if err != nil {
-		ctx.JSON(status, &gitlab.ResponseError{
+		ctx.JSON(status, &form.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
@@ -173,5 +141,5 @@ func DeleteConnectBoard(ctx *context.APIContext) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, &gitlab.Response{})
+	ctx.JSON(http.StatusOK, &form.Response{})
 }

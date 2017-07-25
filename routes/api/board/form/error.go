@@ -1,4 +1,4 @@
-package gitlab
+package form
 
 type ResponseError struct {
 	Success bool   `json:"success"`

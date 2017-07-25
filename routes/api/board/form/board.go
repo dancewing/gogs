@@ -1,4 +1,4 @@
-package gitlab
+package form
 
 import "github.com/gogits/gogs/models"
 

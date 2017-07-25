@@ -1,4 +1,4 @@
-package gitlab
+package form
 
 import (
 	"regexp"
@@ -69,9 +69,9 @@ func MapLabelsFromGogs(labels []*models.Label) *[]string {
 
 	result := make([]string, len(labels))
 
-	for i := range labels {
+	for i:= range labels {
 		result[i] = labels[i].Name
 	}
 
-	return &result
+	return &result;
 }

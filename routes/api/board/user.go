@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gogits/gogs/pkg/context"
-	"github.com/gogits/gogs/routes/api/board/gitlab"
+	"github.com/gogits/gogs/routes/api/board/form"
 )
 
 // ListMembers gets a list of member on board accessible by the authenticated user.
@@ -15,20 +15,27 @@ func ListMembers(ctx *context.APIContext) {
 	//members, err := ctx.DataSource.ListMembers(ctx.Query("project_id"))
 	//
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, &gitlab.ResponseError{
+		ctx.JSON(http.StatusUnauthorized, &form.ResponseError{
 			Success: false,
 			Message: err.Error(),
 		})
 		return
 	}
-	results := make([]*gitlab.User, len(users))
+	results := make([]*form.User, len(users))
 
 	for i := range users {
-		results[i] = gitlab.MapUserFromGogs(users[i])
+		results[i] = form.MapUserFromGogs(users[i])
 	}
-	ctx.JSON(200, &gitlab.Response{
+	ctx.JSON(200, &form.Response{
 		Data: &results,
 	})
 	//
 	//ctx.JSON(http.StatusOK, members)
+}
+
+
+func GetAuthenticatedUser(c *context.Context) {
+	c.JSONSuccess(&form.Response{
+		Data: c.User.APIFormat(),
+	})
 }

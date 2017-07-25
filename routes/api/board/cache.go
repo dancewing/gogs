@@ -7,7 +7,7 @@ import (
 
 	"github.com/gogits/gogs/pkg/context"
 	"github.com/gogits/gogs/pkg/tool"
-	"github.com/gogits/gogs/routes/api/board/gitlab"
+	"github.com/gogits/gogs/routes/api/board/form"
 )
 
 // CreateConnectBoard connects other board to current
@@ -58,8 +58,8 @@ func notExist(arr []string, tar string) bool {
 }
 
 // ListConnectBoard return list connect board for current board
-func ListConnectBoardFromCache(ctx *context.APIContext, boardID int64) ([]*gitlab.Board, int, error) {
-	b := []*gitlab.Board{}
+func ListConnectBoardFromCache(ctx *context.APIContext, boardID int64) ([]*form.Board, int, error) {
+	b := []*form.Board{}
 
 	key := fmt.Sprintf("boards:%s:connect", boardID)
 
