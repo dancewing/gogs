@@ -96,22 +96,6 @@
 
                         return stage;
                     });
-                },
-                create: function(projectId, label, color) {
-                    return $http.post("/api/labels/" + projectId, {
-                        name: label,
-                        color: color
-                    });
-                },
-                update: function(projectId, oldLabel, newLabel, color) {
-                    return $http.put('/api/labels/' + projectId, {
-                        name: oldLabel,
-                        color: color,
-                        new_name: newLabel
-                    });
-                },
-                delete: function(projectId, label) {
-                    return $http.delete("/api/labels/" + projectId + "/" + label);
                 }
             };
         }

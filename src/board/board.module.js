@@ -152,30 +152,6 @@
                     data: {
                         access: 1
                     }
-                })
-                .state('board.cards.milestone_create', {
-                    url: '/milestones/new',
-                    views: {
-                        'modal@board': {
-                            templateUrl: 'assets/html/board/views/milestone/create.html',
-                            controller: 'NewMilestoneController'
-                        }
-                    },
-                    data: {
-                        access: 1
-                    }
-                })
-                .state('board.cards.settings', {
-                    url: '/settings',
-                    views: {
-                        'content@board': {
-                            templateUrl: 'assets/html/board/views/settings.html',
-                            controller: 'SettingsController'
-                        }
-                    },
-                    data: {
-                        access: 1
-                    }
                 });
         }])
         .config(['$markdownProvider', function($markdownProvider) {

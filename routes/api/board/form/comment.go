@@ -3,6 +3,8 @@ package form
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/gogits/gogs/models"
 )
 
 // Comment represents a card comment
@@ -31,4 +33,19 @@ func (c *Comment) MarshalJSON() ([]byte, error) {
 		CreatedAt: c.CreatedAt.Unix(),
 		Alias:     (*Alias)(c),
 	})
+}
+
+func MapCommentFromGogs(c *models.Comment) *Comment {
+
+	if c == nil {
+		return nil
+	}
+
+	return &Comment{
+		Id:        c.ID,
+		Author:    MapUserFromGogs(c.Poster),
+		Body:      c.Content,
+		CreatedAt: c.Created,
+		//	IsInfo:    mapCommentIsInfoFromGitlab(c),
+	}
 }

@@ -17,8 +17,13 @@
             'host_url',
             'KBStore',
             'CardPriority',
-            function($scope, $http, $stateParams, $state, BoardService, $sce, CommentService, LabelService, UserService, MilestoneService, $modal, host_url, store, CardPriority) {
-                BoardService.get($stateParams.project_path).then(function(board) {
+            'project_id',
+            'project_path',
+            function($scope, $http, $stateParams, $state, BoardService, $sce, CommentService, LabelService, UserService, MilestoneService, $modal, host_url, store, CardPriority, project_id, project_path) {
+				var projectId = $stateParams.project_id || project_id;
+				var projectPath = $stateParams.project_path || project_path;
+
+    			BoardService.get(projectPath).then(function(board) {
                     $scope.labels = _.toArray(board.viewLabels);
                     $scope.priorities = board.priorities;
                     $scope.board = board;
@@ -27,11 +32,11 @@
                         $scope.connected_projects = projects;
                     });
 
-                    return BoardService.getCard($stateParams.project_path, $stateParams.path_with_namespace, $stateParams.issue_id);
+                    return BoardService.getCard(projectPath, $stateParams.path_with_namespace, $stateParams.issue_id);
                 }).then(function(card) {
                     $scope.card = card;
 
-                    CommentService.list(card.project_id, card.id).then(function(data) {
+                    CommentService.list(card.project_id, card.iid).then(function(data) {
                         $scope.comments = data;
                     });
 
@@ -58,7 +63,7 @@
                     };
                 });
 
-                $scope.card_url = host_url + "/" + $stateParams.project_path;
+                $scope.card_url = host_url + "/" + projectPath;
                 $scope.card_properties = {};
                 $scope.commentFormData = {};
                 $scope.blockedFormData = {};
@@ -79,8 +84,8 @@
                 $scope.changeProject = function(project){
                     return BoardService.changeProject($scope.board, $scope.card, project).then(function(card){
                         $state.go('board.cards.view', {
-                            project_id: $stateParams.project_id,
-                            project_path: $stateParams.project_path,
+                            project_id: projectId,
+                            project_path: projectPath,
                             path_with_namespace: card.path_with_namespace,
                             issue_id: card.iid
                         });

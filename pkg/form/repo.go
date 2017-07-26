@@ -253,6 +253,8 @@ type CreateLabel struct {
 	ID    int64
 	Title string `binding:"Required;MaxSize(50)" locale:"repo.issues.label_name"`
 	Color string `binding:"Required;Size(7)" locale:"repo.issues.label_color"`
+	Group string `binding:"MaxSize(50)" locale:"repo.issues.label_group"`
+	Order int    `locale:"repo.issues.label_order"`
 }
 
 func (f *CreateLabel) Validate(ctx *macaron.Context, errs binding.Errors) binding.Errors {

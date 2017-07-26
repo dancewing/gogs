@@ -1,0 +1,8 @@
+
+{{if $.IsRepositoryWriter}}
+<div class="ui compact small menu">
+	{{range .LabelGroups}}
+			<a class="item" href="{{$.RepoLink}}/labels/group/{{.}}">{{.}}</a>
+	{{end}}
+</div>
+{{end}}

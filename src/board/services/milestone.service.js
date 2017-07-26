@@ -21,14 +21,6 @@
 
                         return $q.when(_this.milestones[projectId]);
                     },
-                    create: function(data) {
-                        return $http.post('/api/milestones', data).then(function(result){
-                            if (_.isEmpty(this.milestones[data.project_id])) {
-                                return this.list(data.project_id)
-                            }
-                            this.milestones[data.project_id].push(result.data.data)
-                        }.bind(this));
-                    },
                     findByName: function(projectId, name) {
                         return this.list(projectId).then(function(milestones) {
                             return _.find(milestones, function(milestone) {

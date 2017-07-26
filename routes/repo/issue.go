@@ -1045,9 +1045,11 @@ func NewLabel(c *context.Context, f form.CreateLabel) {
 	}
 
 	l := &models.Label{
-		RepoID: c.Repo.Repository.ID,
-		Name:   f.Title,
-		Color:  f.Color,
+		RepoID:     c.Repo.Repository.ID,
+		Name:       f.Title,
+		Color:      f.Color,
+		LabelGroup: f.Group,
+		LabelOrder: f.Order,
 	}
 	if err := models.NewLabels(l); err != nil {
 		c.Handle(500, "NewLabel", err)

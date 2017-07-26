@@ -483,7 +483,8 @@ func runWeb(c *cli.Context) error {
 
 		m.Get("/issues", repo.RetrieveLabels, repo.Issues)
 		m.Get("/issues/:index", repo.ViewIssue)
-		m.Get("/labels/", repo.RetrieveLabels, repo.Labels)
+		m.Get("/labels/", repo.RetrieveLabels, repo.RetrieveLabelGroups, repo.Labels)
+
 		m.Get("/milestones", repo.Milestones)
 	}, ignSignIn, context.RepoAssignment(true))
 
@@ -527,6 +528,15 @@ func runWeb(c *cli.Context) error {
 			m.Post("/edit", bindIgnErr(form.CreateLabel{}), repo.UpdateLabel)
 			m.Post("/delete", repo.DeleteLabel)
 			m.Post("/initialize", bindIgnErr(form.InitializeLabels{}), repo.InitializeLabels)
+
+			m.Group("/group", func(){
+				m.Combo("").Get(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup).
+					Post(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup)
+
+				m.Combo("/:group").Get(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup).
+					Post(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup)
+			})
+
 		}, reqRepoWriter, context.RepoRef())
 		m.Group("/milestones", func() {
 			m.Combo("/new").Get(repo.NewMilestone).

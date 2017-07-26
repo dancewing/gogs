@@ -215,6 +215,12 @@ func RegisterBoardRoutes(m *macaron.Macaron) {
 					Post(binding.Json(form.CardRequest{}), CreateCard).
 					Put(binding.Json(form.CardRequest{}), UpdateCard).
 					Delete(binding.Json(form.CardRequest{}), DeleteCard)
+
+				m.Group("/:index", func(){
+					m.Combo("/comments").
+						Get(ListComments).
+						Post(binding.Json(form.CommentRequest{}), CreateComment)
+				})
 			})
 
 			m.Combo("/milestones").
@@ -227,29 +233,10 @@ func RegisterBoardRoutes(m *macaron.Macaron) {
 				Put(binding.Json(form.CardRequest{}), MoveToCard).
 				Post(binding.Json(form.CardRequest{}), ChangeProjectForCard)
 
-			//m.Put("/move", binding.Json(gitlab.CardRequest{}), MoveToCard)
-			//m.Post("/move/:projectId", binding.Json(gitlab.CardRequest{}), ChangeProjectForCard)
-
-			m.Combo("/comments").
-				Get(ListComments).
-				Post(binding.Json(form.CommentRequest{}), CreateComment)
-
 			m.Post("/upload", binding.MultipartForm(form.UploadForm{}), UploadFile)
 		}, repoAssignment())
 
 	}, context.APIContexter())
-
-	//m.Get("/board", ItemBoard)
-
-	m.Get("/cards", ListCards)
-	m.Combo("/milestones").
-		Get(ListMilestones).
-		Post(binding.Json(form.MilestoneRequest{}), CreateMilestone)
-
-	m.Get("/users", ListMembers)
-	m.Combo("/comments").
-		Get(ListComments).
-		Post(binding.Json(form.CommentRequest{}), CreateComment)
 
 	m.Group("/card/:board", func() {
 		m.Combo("").

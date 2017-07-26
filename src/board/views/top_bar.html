@@ -15,7 +15,7 @@
                 <li data-ng-show="!isEmpty(project)">
                     <a href="#" data-ng-click="showActionBar()">
                         <i class="fa fa-bars"></i>
-                        <span class="hide-for-medium-down">&nbsp;&nbsp;Actions</span>
+                        <span class="hide-for-medium-down">&nbsp;&nbsp;Filter</span>
                     </a>
                 </li>
                 <!-- filter button -->
@@ -49,18 +49,12 @@
                                 <i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;Issue
                             </a>
                         </li>
-                        <li>
-                            <a data-ui-sref="board.cards.milestone_create({ project_id: project.id, project_path: project.path_with_namespace })">
-                                <i class="fa fa-clock-o"></i>&nbsp;&nbsp;Milestone
-                            </a>
-                        </li>
+                        <!--<li>-->
+                            <!--<a data-ui-sref="board.cards.milestone_create({ project_id: project.id, project_path: project.path_with_namespace })">-->
+                                <!--<i class="fa fa-clock-o"></i>&nbsp;&nbsp;Milestone-->
+                            <!--</a>-->
+                        <!--</li>-->
                     </ul>
-                </li>
-                <li data-ng-show="!isEmpty(project)">
-                    <a data-ui-sref="board.cards.settings({project_id: project.id, project_path: project.path_with_namespace})" title="Settings">
-                        <i class="fa fa-gears"></i>
-                        <span class="hide-for-medium-down">&nbsp;&nbsp;Settings</span>
-                    </a>
                 </li>
                 <li>
                     <a data-ng-click="switchView()">

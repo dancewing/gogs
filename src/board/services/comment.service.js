@@ -3,10 +3,10 @@
 
     angular.module('gitlabKBApp.board').factory('CommentService',
         [
-            '$http', function($http) {
+            '$http','project_path', function($http, project_path) {
                 return {
                     list: function(boardId, cardId) {
-                        return $http.get('/api/comments', {
+                        return $http.get('/api/boards/'+project_path+'/cards/'+ cardId +'/comments', {
                             params: {
                                 project_id: boardId,
                                 issue_id: cardId
@@ -16,7 +16,7 @@
                         });
                     },
                     create: function(boardId, cardId, comment) {
-                        return $http.post('/api/comments', {
+                        return $http.post('/api/boards/'+project_path+'/cards/'+ cardId +'/comments', {
                             project_id: boardId,
                             issue_id: cardId,
                             body: comment
