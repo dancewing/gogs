@@ -534,7 +534,7 @@ func runWeb(c *cli.Context) error {
 					Post(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup)
 
 				m.Combo("/:group").Get(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup).
-					Post(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup)
+					Post(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups,bindIgnErr(form.BatchUpdateLabel{}), repo.BatchUpdateLabelsByGroup)
 			})
 
 		}, reqRepoWriter, context.RepoRef())
@@ -677,7 +677,7 @@ func runWeb(c *cli.Context) error {
 	m.Group("/api", func() {
 		//apiv1.RegisterRoutes(m)
 		apiboard.RegisterBoardRoutes(m)
-	}, ignSignIn)
+	})
 
 	// robots.txt
 	m.Get("/robots.txt", func(c *context.Context) {

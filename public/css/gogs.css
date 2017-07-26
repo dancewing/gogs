@@ -1132,6 +1132,14 @@ footer .ui.language .menu {
 .repository .ui.container:not(.fluid) {
   width: 1280px !important;
 }
+.repository .list.label .color {
+  float: left;
+  width: 15px;
+  height: 15px;
+}
+.repository .list.label .precolors {
+  width: 148px;
+}
 .repository .head .column {
   padding-top: 5px !important;
   padding-bottom: 5px !important;

@@ -61,12 +61,18 @@ func repoAssignment() macaron.Handler {
 		if c.IsLogged && c.User.IsAdmin {
 			c.Repo.AccessMode = models.ACCESS_MODE_OWNER
 		} else {
-			mode, err := models.AccessLevel(c.User.ID, repo)
-			if err != nil {
-				c.Error(500, "AccessLevel", err)
-				return
+
+			if c.IsLogged {
+				mode, err := models.AccessLevel(c.User.ID, repo)
+				if err != nil {
+					c.Error(500, "AccessLevel", err)
+					return
+				}
+				c.Repo.AccessMode = mode
+			} else {
+				c.Repo.AccessMode = models.ACCESS_MODE_READ
 			}
-			c.Repo.AccessMode = mode
+
 		}
 
 		if !c.Repo.HasAccess() {
@@ -181,11 +187,6 @@ func mustEnableIssues(c *context.APIContext) {
 
 func RegisterBoardRoutes(m *macaron.Macaron) {
 
-	m.Get("/labels/:project", ListLabels)
-	m.Put("/labels/:project", binding.Json(form.LabelRequest{}), EditLabel)
-	m.Delete("/labels/:project/:label", DeleteLabel)
-	m.Post("/labels/:project", binding.Json(form.LabelRequest{}), CreateLabel)
-
 	m.Group("/boards", func() {
 
 		//m.Post("/configure", binding.Json(gitlab.BoardRequest{}), Configure)
@@ -216,7 +217,7 @@ func RegisterBoardRoutes(m *macaron.Macaron) {
 					Put(binding.Json(form.CardRequest{}), UpdateCard).
 					Delete(binding.Json(form.CardRequest{}), DeleteCard)
 
-				m.Group("/:index", func(){
+				m.Group("/:index", func() {
 					m.Combo("/comments").
 						Get(ListComments).
 						Post(binding.Json(form.CommentRequest{}), CreateComment)
@@ -230,8 +231,8 @@ func RegisterBoardRoutes(m *macaron.Macaron) {
 			m.Get("/users", ListMembers)
 
 			m.Combo("/move").
-				Put(binding.Json(form.CardRequest{}), MoveToCard).
-				Post(binding.Json(form.CardRequest{}), ChangeProjectForCard)
+				Put(reqToken(), binding.Json(form.CardRequest{}), MoveToCard).
+				Post(reqToken(), binding.Json(form.CardRequest{}), ChangeProjectForCard)
 
 			m.Post("/upload", binding.MultipartForm(form.UploadForm{}), UploadFile)
 		}, repoAssignment())

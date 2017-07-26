@@ -12,16 +12,21 @@
             'LabelService',
             '$modal',
             'KBStore',
-            function($scope, $http, $stateParams, $location, BoardService, UserService, MilestoneService, LabelService, $modal, store) {
+            'project_id',
+            'project_path',
+            function($scope, $http, $stateParams, $location, BoardService, UserService, MilestoneService, LabelService, $modal, store, project_id, project_path) {
                 $scope.isSaving = false;
                 $scope.modal = $modal;
                 $scope.card = {};
+
+				var projectId = $stateParams.project_id || project_id;
+				var projectPath = $stateParams.project_path || project_path;
 
                 var getHashKey = function() {
                     return $scope.card.project_id + ":card:new";
                 };
 
-                BoardService.get($stateParams.project_path).then(function(board) {
+                BoardService.get(projectPath).then(function(board) {
                     UserService.list(board.project.id, board.project.path_with_namespace).then(function(users) {
                         $scope.options = users;
                     });

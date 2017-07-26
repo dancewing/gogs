@@ -9,7 +9,8 @@
         'Board',
         'UserService',
         'MilestoneService',
-        function($http, $q, $sce, LabelService, WebsocketService, Board, UserService, MilestoneService) {
+        'AuthService',
+        function($http, $q, $sce, LabelService, WebsocketService, Board, UserService, MilestoneService, AuthService) {
             var service = {
                 current: {},
                 boards: {},
@@ -252,7 +253,7 @@
                     return {
                         longTouch: true,
                         accept: function() {
-                            return true;
+                        	return true;
                         },
                         dragEnd: function(event) {
                             var id = event.source.itemScope.card.id,

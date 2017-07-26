@@ -33,9 +33,25 @@ func ListMembers(ctx *context.APIContext) {
 	//ctx.JSON(http.StatusOK, members)
 }
 
-
 func GetAuthenticatedUser(c *context.Context) {
-	c.JSONSuccess(&form.Response{
-		Data: c.User.APIFormat(),
-	})
+
+	if c.IsLogged {
+		user := form.MapUserFromGogs(c.User)
+		user.IsLogged = true
+
+		user.Repo = form.MapRepoFromGogs(c.Repo)
+
+		c.JSONSuccess(&form.Response{
+			Data: user,
+		})
+	} else {
+		c.JSONSuccess(&form.Response{
+			Data: &form.User{
+				Id:       0,
+				Name:     "Anonymous",
+				IsLogged: false,
+			},
+		})
+	}
+
 }

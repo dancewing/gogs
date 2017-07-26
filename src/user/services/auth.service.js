@@ -33,7 +33,10 @@
 						return $q.when(this.current);
                     },
                     isAuthenticated: function () {
-                        return this.getCurrent() !== null;
+						return this.getCurrent().then(function (user) {
+							return user!=null;
+						});
+                       // return this.getCurrent() !== null;
                     },
                     authorized: function (state) {
                         var roles = this.roles;

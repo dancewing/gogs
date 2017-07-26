@@ -1,0 +1,32 @@
+<div class="ui new-label segment hide">
+	<form class="ui form" action="{{$.RepoLink}}/labels/new" method="post">
+		{{.CSRFTokenHTML}}
+		<div class="ui grid">
+			<div class="three wide column">
+				<div class="ui small input">
+					<input class="new-label-input" name="title" placeholder="{{.i18n.Tr "repo.issues.new_label_placeholder"}}" autofocus required>
+				</div>
+			</div>
+			<div class="color picker column" id="label_new">
+				<input class="color-picker" name="color" value="#70c24a" required>
+			</div>
+			<div class="column precolors" data-color-for="label_new">
+				{{template "repo/issue/label_precolors"}}
+			</div>
+			<div class="three wide column">
+				<div class="ui small input">
+					<input class="new-group-input" name="group" placeholder="Label group">
+				</div>
+			</div>
+			<div class="three wide column">
+				<div class="ui small input">
+					<input class="new-order-input" name="order" placeholder="Label order">
+				</div>
+			</div>
+			<div class="buttons">
+				<div class="ui blue small basic cancel button">{{.i18n.Tr "repo.milestones.cancel"}}</div>
+				<button class="ui green small button">{{.i18n.Tr "repo.issues.create_label"}}</button>
+			</div>
+		</div>
+	</form>
+</div>

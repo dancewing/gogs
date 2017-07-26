@@ -291,6 +291,9 @@ function initRepository() {
             $('#label-modal-id').val($(this).data('id'));
             $('.edit-label .new-label-input').val($(this).data('title'));
             $('.edit-label .color-picker').val($(this).data('color'));
+            $('.edit-label .label-group-input').val($(this).data('group'));
+            $('.edit-label .label-order-input').val($(this).data('order'));
+
             $('.minicolors-swatch-color').css("background-color", $(this).data('color'));
             $('.edit-label.modal').modal({
                 onApprove: function () {
@@ -300,6 +303,62 @@ function initRepository() {
             return false;
         });
     }
+
+    //Grouped Labels
+	if ($('.repository.label_groups').length > 0) {
+		// Create label
+		var $newLabelPanel = $('.new-label.segment');
+		$('.new-label.button').click(function () {
+			$newLabelPanel.show();
+		});
+		$('.new-label.segment .cancel').click(function () {
+			$newLabelPanel.hide();
+		});
+
+		$('.color-picker').each(function () {
+			$(this).minicolors();
+		});
+		$('.precolors .color').click(function () {
+			var color_hex = $(this).data('color-hex');
+			var color_for = $(this).parent().data('color-for');
+			if (color_for) {
+				$('#'+color_for+' .color-picker').val(color_hex);
+				$('#'+color_for+' .minicolors-swatch-color').css("background-color", color_hex);
+			} else {
+				$('.color-picker').val(color_hex);
+				$('.minicolors-swatch-color').css("background-color", color_hex);
+			}
+		});
+
+		$('.label_batch').submit(function(event){
+			event.preventDefault();
+			var labels = [];
+			$(this).find('.item ').each(function(d, o){
+				labels.push({
+					id 	  :parseInt($(this).find('.edit-id').val()),
+					title :$(this).find('.edit-label-input').val(),
+					color :$(this).find('.color-picker').val(),
+					group :$(this).find('.edit-group-input').val(),
+					order :parseInt($(this).find('.edit-order-input').val())
+				});
+			});
+			var url = $(this).attr('action');
+			var csf = $(this).find('.csf').val();
+			$.ajax(
+				url,
+				{
+					beforeSend: function(request) {
+						request.setRequestHeader("X-Csrf-Token", csf);
+					},
+					data : JSON.stringify({labels:labels}),
+					contentType : 'application/json',
+					type : 'POST',
+					success : function () {
+						window.location.href = url;
+					}
+				});
+		});
+	}
 
     // Milestones
     if ($('.repository.milestones').length > 0) {
@@ -1143,7 +1202,7 @@ function initWebhookSettings() {
 $(document).ready(function () {
     csrf = $('meta[name=_csrf]').attr("content");
     suburl = $('meta[name=_suburl]').attr("content");
-    
+
     // Set cursor to the end of autofocus input string
     $('input[autofocus]').each(function () {
         $(this).val($(this).val());
