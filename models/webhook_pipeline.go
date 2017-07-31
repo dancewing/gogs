@@ -27,10 +27,10 @@ import (
 	gouuid "github.com/satori/go.uuid"
 )
 
-var JenkinsHookQueue = sync.NewUniqueQueue(setting.Webhook.QueueLength)
+var PipelineHookQueue = sync.NewUniqueQueue(setting.Webhook.QueueLength)
 
-// JenkinsHook represents a hook object trigger by web hook.
-type JenkinsHook struct {
+// PipelineHook represents a hook object trigger by web hook.
+type PipelineHook struct {
 	ID          int64
 	RepoID      int64
 	OrgID       int64
@@ -50,16 +50,16 @@ type JenkinsHook struct {
 	UpdatedUnix int64
 }
 
-func (w *JenkinsHook) BeforeInsert() {
+func (w *PipelineHook) BeforeInsert() {
 	w.CreatedUnix = time.Now().Unix()
 	w.UpdatedUnix = w.CreatedUnix
 }
 
-func (w *JenkinsHook) BeforeUpdate() {
+func (w *PipelineHook) BeforeUpdate() {
 	w.UpdatedUnix = time.Now().Unix()
 }
 
-func (w *JenkinsHook) AfterSet(colName string, _ xorm.Cell) {
+func (w *PipelineHook) AfterSet(colName string, _ xorm.Cell) {
 	var err error
 	switch colName {
 	case "events":
@@ -75,85 +75,85 @@ func (w *JenkinsHook) AfterSet(colName string, _ xorm.Cell) {
 }
 
 // CreateWebhook creates a new web hook.
-func CreateJenkinsHook(w *JenkinsHook) error {
+func CreatePipelineHook(w *PipelineHook) error {
 	_, err := x.Insert(w)
 	return err
 }
 
 // UpdateWebhook updates information of webhook.
-func UpdateJenkinsHook(w *JenkinsHook) error {
+func UpdatePipelineHook(w *PipelineHook) error {
 	_, err := x.Id(w.ID).AllCols().Update(w)
 	return err
 }
 
 // History returns history of webhook by given conditions.
-func (w *JenkinsHook) History(page int) ([]*JenkinsHookTask, error) {
-	return JenkinsHookTasks(w.ID, page)
+func (w *PipelineHook) History(page int) ([]*PipelineHookTask, error) {
+	return PipelineHookTasks(w.ID, page)
 }
 
 // HookTasks returns a list of hook tasks by given conditions.
-func JenkinsHookTasks(hookID int64, page int) ([]*JenkinsHookTask, error) {
-	tasks := make([]*JenkinsHookTask, 0, setting.Webhook.PagingNum)
+func PipelineHookTasks(hookID int64, page int) ([]*PipelineHookTask, error) {
+	tasks := make([]*PipelineHookTask, 0, setting.Webhook.PagingNum)
 	return tasks, x.Limit(setting.Webhook.PagingNum, (page-1)*setting.Webhook.PagingNum).Where("hook_id=?", hookID).Desc("id").Find(&tasks)
 }
 
 // UpdateEvent handles conversion from HookEvent to Events.
-func (w *JenkinsHook) UpdateEvent() error {
+func (w *PipelineHook) UpdateEvent() error {
 	data, err := json.Marshal(w.HookEvent)
 	w.Events = string(data)
 	return err
 }
 
 // HasCreateEvent returns true if hook enabled create event.
-func (w *JenkinsHook) HasCreateEvent() bool {
+func (w *PipelineHook) HasCreateEvent() bool {
 	return w.SendEverything ||
 		(w.ChooseEvents && w.HookEvents.Create)
 }
 
 // HasDeleteEvent returns true if hook enabled delete event.
-func (w *JenkinsHook) HasDeleteEvent() bool {
+func (w *PipelineHook) HasDeleteEvent() bool {
 	return w.SendEverything ||
 		(w.ChooseEvents && w.HookEvents.Delete)
 }
 
 // HasForkEvent returns true if hook enabled fork event.
-func (w *JenkinsHook) HasForkEvent() bool {
+func (w *PipelineHook) HasForkEvent() bool {
 	return w.SendEverything ||
 		(w.ChooseEvents && w.HookEvents.Fork)
 }
 
 // HasPushEvent returns true if hook enabled push event.
-func (w *JenkinsHook) HasPushEvent() bool {
+func (w *PipelineHook) HasPushEvent() bool {
 	return w.PushOnly || w.SendEverything ||
 		(w.ChooseEvents && w.HookEvents.Push)
 }
 
 // HasIssuesEvent returns true if hook enabled issues event.
-func (w *JenkinsHook) HasIssuesEvent() bool {
+func (w *PipelineHook) HasIssuesEvent() bool {
 	return w.SendEverything ||
 		(w.ChooseEvents && w.HookEvents.Issues)
 }
 
 // HasIssueCommentEvent returns true if hook enabled issue comment event.
-func (w *JenkinsHook) HasIssueCommentEvent() bool {
+func (w *PipelineHook) HasIssueCommentEvent() bool {
 	return w.SendEverything ||
 		(w.ChooseEvents && w.HookEvents.IssueComment)
 }
 
 // HasPullRequestEvent returns true if hook enabled pull request event.
-func (w *JenkinsHook) HasPullRequestEvent() bool {
+func (w *PipelineHook) HasPullRequestEvent() bool {
 	return w.SendEverything ||
 		(w.ChooseEvents && w.HookEvents.PullRequest)
 }
 
 // HasReleaseEvent returns true if hook enabled release event.
-func (w *JenkinsHook) HasReleaseEvent() bool {
+func (w *PipelineHook) HasReleaseEvent() bool {
 	return w.SendEverything ||
 		(w.ChooseEvents && w.HookEvents.Release)
 }
 
 // HookTask represents a hook task.
-type JenkinsHookTask struct {
+type PipelineHookTask struct {
 	ID              int64
 	RepoID          int64 `xorm:"INDEX"`
 	HookID          int64
@@ -177,7 +177,7 @@ type JenkinsHookTask struct {
 	ResponseInfo    *HookResponse `xorm:"-"`
 }
 
-func (t *JenkinsHookTask) BeforeUpdate() {
+func (t *PipelineHookTask) BeforeUpdate() {
 	if t.RequestInfo != nil {
 		t.RequestContent = t.MarshalJSON(t.RequestInfo)
 	}
@@ -186,7 +186,7 @@ func (t *JenkinsHookTask) BeforeUpdate() {
 	}
 }
 
-func (t *JenkinsHookTask) AfterSet(colName string, _ xorm.Cell) {
+func (t *PipelineHookTask) AfterSet(colName string, _ xorm.Cell) {
 	var err error
 	switch colName {
 	case "delivered":
@@ -214,7 +214,7 @@ func (t *JenkinsHookTask) AfterSet(colName string, _ xorm.Cell) {
 	}
 }
 
-func (t *JenkinsHookTask) MarshalJSON(v interface{}) string {
+func (t *PipelineHookTask) MarshalJSON(v interface{}) string {
 	p, err := json.Marshal(v)
 	if err != nil {
 		log.Error(3, "Marshal [%d]: %v", t.ID, err)
@@ -223,28 +223,28 @@ func (t *JenkinsHookTask) MarshalJSON(v interface{}) string {
 }
 
 // getActiveWebhooksByRepoID returns all active webhooks of repository.
-func getActiveJenkinsHooksByRepoID(e Engine, repoID int64) ([]*JenkinsHook, error) {
-	webhooks := make([]*JenkinsHook, 0, 5)
+func getActivePipelineHooksByRepoID(e Engine, repoID int64) ([]*PipelineHook, error) {
+	webhooks := make([]*PipelineHook, 0, 5)
 	return webhooks, e.Where("repo_id = ?", repoID).And("is_active = ?", true).Find(&webhooks)
 }
 
 // getActiveWebhooksByOrgID returns all active webhooks for an organization.
-func getActiveJenkinsHooksByOrgID(e Engine, orgID int64) ([]*JenkinsHook, error) {
-	ws := make([]*JenkinsHook, 0, 3)
+func getActivePipelineHooksByOrgID(e Engine, orgID int64) ([]*PipelineHook, error) {
+	ws := make([]*PipelineHook, 0, 3)
 	return ws, e.Where("org_id=?", orgID).And("is_active=?", true).Find(&ws)
 }
 
 // GetWebhookOfRepoByID returns webhook of repository by given ID.
-func GetJenkinsHookOfRepoByID(repoID, id int64) (*JenkinsHook, error) {
-	return getJenkinsHook(&JenkinsHook{
+func GetPipelineHookOfRepoByID(repoID, id int64) (*PipelineHook, error) {
+	return getPipelineHook(&PipelineHook{
 		//	ID:     id,
 		RepoID: repoID,
 	})
 }
 
 // GetWebhookByOrgID returns webhook of organization by given ID.
-func GetJenkinsHookByOrgID(orgID, id int64) (*JenkinsHook, error) {
-	return getJenkinsHook(&JenkinsHook{
+func GetPipelineHookByOrgID(orgID, id int64) (*PipelineHook, error) {
+	return getPipelineHook(&PipelineHook{
 		//	ID:    id,
 		OrgID: orgID,
 	})
@@ -252,7 +252,7 @@ func GetJenkinsHookByOrgID(orgID, id int64) (*JenkinsHook, error) {
 
 // getWebhook uses argument bean as query condition,
 // ID must be specified and do not assign unnecessary fields.
-func getJenkinsHook(bean *JenkinsHook) (*JenkinsHook, error) {
+func getPipelineHook(bean *PipelineHook) (*PipelineHook, error) {
 	has, err := x.Get(bean)
 	if err != nil {
 		return nil, err
@@ -265,14 +265,14 @@ func getJenkinsHook(bean *JenkinsHook) (*JenkinsHook, error) {
 // GetWebhookByID returns webhook by given ID.
 // Use this function with caution of accessing unauthorized webhook,
 // which means should only be used in non-user interactive functions.
-func GetJenkinsHookByID(id int64) (*JenkinsHook, error) {
-	return getJenkinsHook(&JenkinsHook{
+func GetPipelineHookByID(id int64) (*PipelineHook, error) {
+	return getPipelineHook(&PipelineHook{
 		ID: id,
 	})
 }
 
 // prepareHookTasks adds list of webhooks to task queue.
-func prepareJenkinsHookTasks(e Engine, repo *Repository, event HookEventType, p api.Payloader, webhooks []*JenkinsHook) (err error) {
+func preparePipelineHookTasks(e Engine, repo *Repository, event HookEventType, p api.Payloader, webhooks []*PipelineHook) (err error) {
 	if len(webhooks) == 0 {
 		return nil
 	}
@@ -327,7 +327,7 @@ func prepareJenkinsHookTasks(e Engine, repo *Repository, event HookEventType, p 
 			signature = hex.EncodeToString(sig.Sum(nil))
 		}
 
-		hookTask := &JenkinsHookTask{
+		hookTask := &PipelineHookTask{
 			RepoID:      repo.ID,
 			HookID:      w.ID,
 			URL:         w.URL,
@@ -338,7 +338,7 @@ func prepareJenkinsHookTasks(e Engine, repo *Repository, event HookEventType, p 
 			IsSSL:       w.IsSSL,
 		}
 
-		if err = createJenkinsHookTask(e, hookTask); err != nil {
+		if err = createPipelineHookTask(e, hookTask); err != nil {
 			return fmt.Errorf("createHookTask: %v", err)
 		}
 
@@ -356,13 +356,13 @@ func prepareJenkinsHookTasks(e Engine, repo *Repository, event HookEventType, p 
 	// It's safe to fail when the whole function is called during hook execution
 	// because resource released after exit. Also, there is no process started to
 	// consume this input during hook execution.
-	go JenkinsHookQueue.Add(repo.ID)
+	go PipelineHookQueue.Add(repo.ID)
 	return nil
 }
 
 // createHookTask creates a new hook task,
 // it handles conversion from Payload to PayloadContent.
-func createJenkinsHookTask(e Engine, t *JenkinsHookTask) error {
+func createPipelineHookTask(e Engine, t *PipelineHookTask) error {
 	data, err := t.Payloader.JSONPayload()
 	if err != nil {
 		return err
@@ -374,13 +374,13 @@ func createJenkinsHookTask(e Engine, t *JenkinsHookTask) error {
 }
 
 // UpdateHookTask updates information of hook task.
-func UpdateJenkinsHookTask(t *JenkinsHookTask) error {
+func UpdatePipelineHookTask(t *PipelineHookTask) error {
 	_, err := x.Id(t.ID).AllCols().Update(t)
 	return err
 }
 
 func prepareJekinshooks(e Engine, repo *Repository, event HookEventType, p api.Payloader) error {
-	webhooks, err := getActiveJenkinsHooksByRepoID(e, repo.ID)
+	webhooks, err := getActivePipelineHooksByRepoID(e, repo.ID)
 	if err != nil {
 		return fmt.Errorf("getActiveWebhooksByRepoID [%d]: %v", repo.ID, err)
 	}
@@ -388,16 +388,16 @@ func prepareJekinshooks(e Engine, repo *Repository, event HookEventType, p api.P
 	// check if repo belongs to org and append additional webhooks
 	if repo.mustOwner(e).IsOrganization() {
 		// get hooks for org
-		orgws, err := getActiveJenkinsHooksByOrgID(e, repo.OwnerID)
+		orgws, err := getActivePipelineHooksByOrgID(e, repo.OwnerID)
 		if err != nil {
 			return fmt.Errorf("getActiveWebhooksByOrgID [%d]: %v", repo.OwnerID, err)
 		}
 		webhooks = append(webhooks, orgws...)
 	}
-	return prepareJenkinsHookTasks(e, repo, event, p, webhooks)
+	return preparePipelineHookTasks(e, repo, event, p, webhooks)
 }
 
-func (t *JenkinsHookTask) deliver() {
+func (t *PipelineHookTask) deliver() {
 	t.IsDelivered = true
 
 	timeout := time.Duration(setting.Webhook.DeliverTimeout) * time.Second
@@ -435,7 +435,7 @@ func (t *JenkinsHookTask) deliver() {
 		}
 
 		// Update webhook last delivery status.
-		w, err := GetJenkinsHookByID(t.HookID)
+		w, err := GetPipelineHookByID(t.HookID)
 		if err != nil {
 			log.Error(3, "GetWebhookByID: %v", err)
 			return
@@ -445,7 +445,7 @@ func (t *JenkinsHookTask) deliver() {
 		} else {
 			w.LastStatus = HOOK_STATUS_FAILED
 		}
-		if err = UpdateJenkinsHook(w); err != nil {
+		if err = UpdatePipelineHook(w); err != nil {
 			log.Error(3, "UpdateWebhook: %v", err)
 			return
 		}
@@ -473,11 +473,11 @@ func (t *JenkinsHookTask) deliver() {
 	t.ResponseInfo.Body = string(p)
 }
 
-func DeliverJenkinsHooks() {
-	tasks := make([]*JenkinsHookTask, 0, 10)
-	x.Where("is_delivered = ?", false).Iterate(new(JenkinsHookTask),
+func DeliverPipelineHooks() {
+	tasks := make([]*PipelineHookTask, 0, 10)
+	x.Where("is_delivered = ?", false).Iterate(new(PipelineHookTask),
 		func(idx int, bean interface{}) error {
-			t := bean.(*JenkinsHookTask)
+			t := bean.(*PipelineHookTask)
 			t.deliver()
 			tasks = append(tasks, t)
 			return nil
@@ -485,24 +485,24 @@ func DeliverJenkinsHooks() {
 
 	// Update hook task status.
 	for _, t := range tasks {
-		if err := UpdateJenkinsHookTask(t); err != nil {
+		if err := UpdatePipelineHookTask(t); err != nil {
 			log.Error(4, "UpdateHookTask [%d]: %v", t.ID, err)
 		}
 	}
 
 	// Start listening on new hook requests.
-	for repoID := range JenkinsHookQueue.Queue() {
+	for repoID := range PipelineHookQueue.Queue() {
 		log.Trace("DeliverHooks [repo_id: %v]", repoID)
-		JenkinsHookQueue.Remove(repoID)
+		PipelineHookQueue.Remove(repoID)
 
-		tasks = make([]*JenkinsHookTask, 0, 5)
+		tasks = make([]*PipelineHookTask, 0, 5)
 		if err := x.Where("repo_id = ?", repoID).And("is_delivered = ?", false).Find(&tasks); err != nil {
 			log.Error(4, "Get repository [%s] hook tasks: %v", repoID, err)
 			continue
 		}
 		for _, t := range tasks {
 			t.deliver()
-			if err := UpdateJenkinsHookTask(t); err != nil {
+			if err := UpdatePipelineHookTask(t); err != nil {
 				log.Error(4, "UpdateHookTask [%d]: %v", t.ID, err)
 				continue
 			}
@@ -510,6 +510,6 @@ func DeliverJenkinsHooks() {
 	}
 }
 
-func InitJenkinsDeliverHooks() {
-	go DeliverJenkinsHooks()
+func InitPipelineDeliverHooks() {
+	go DeliverPipelineHooks()
 }

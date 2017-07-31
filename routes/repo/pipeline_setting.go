@@ -11,7 +11,7 @@ const (
 	PIPELINE_HOOK_EDIT = "repo/settings/pipeline_hook_edit"
 )
 
-func JenkinsHooksEditPost(c *context.Context, f form.NewWebhook) {
+func PipelineHooksEditPost(c *context.Context, f form.NewWebhook) {
 	c.Data["Title"] = c.Tr("repo.settings.add_webhook")
 	c.Data["PageIsSettingsHooks"] = true
 	c.Data["PageIsSettingsHooksNew"] = true
@@ -19,7 +19,7 @@ func JenkinsHooksEditPost(c *context.Context, f form.NewWebhook) {
 	c.Data["HookType"] = "jenkins"
 
 	//orCtx, err := getOrgRepoCtx(c)
-	orCtx, w := checkJenkinsHook(c)
+	orCtx, w := checkPipelineHook(c)
 	//if err != nil {
 	//	c.Handle(500, "getOrgRepoCtx", err)
 	//	return
@@ -37,7 +37,7 @@ func JenkinsHooksEditPost(c *context.Context, f form.NewWebhook) {
 	}
 
 	if w == nil {
-		w = &models.JenkinsHook{
+		w = &models.PipelineHook{
 			RepoID:      orCtx.RepoID,
 			URL:         f.PayloadURL,
 			ContentType: contentType,
@@ -50,8 +50,8 @@ func JenkinsHooksEditPost(c *context.Context, f form.NewWebhook) {
 		if err := w.UpdateEvent(); err != nil {
 			c.Handle(500, "UpdateEvent", err)
 			return
-		} else if err := models.CreateJenkinsHook(w); err != nil {
-			c.Handle(500, "CreateJenkinsHook", err)
+		} else if err := models.CreatePipelineHook(w); err != nil {
+			c.Handle(500, "CreatePipelineHook", err)
 			return
 		}
 
@@ -67,8 +67,8 @@ func JenkinsHooksEditPost(c *context.Context, f form.NewWebhook) {
 		if err := w.UpdateEvent(); err != nil {
 			c.Handle(500, "UpdateEvent", err)
 			return
-		} else if err := models.UpdateJenkinsHook(w); err != nil {
-			c.Handle(500, "CreateJenkinsHook", err)
+		} else if err := models.UpdatePipelineHook(w); err != nil {
+			c.Handle(500, "CreatePipelineHook", err)
 			return
 		}
 	}
@@ -77,19 +77,19 @@ func JenkinsHooksEditPost(c *context.Context, f form.NewWebhook) {
 	c.Redirect(orCtx.Link + "/settings/hooks/pipeline")
 }
 
-func JenkinsHooksEdit(c *context.Context) {
+func PipelineHooksEdit(c *context.Context) {
 	c.Data["Title"] = c.Tr("repo.settings.update_webhook")
 	c.Data["PageIsSettingsHooks"] = true
 	c.Data["PageIsSettingsHooksNew"] = true
 
-	orCtx, w := checkJenkinsHook(c)
+	orCtx, w := checkPipelineHook(c)
 	if c.Written() {
 		return
 	}
 
 	if w == nil {
 		c.Data["HookFound"] = false
-		c.Data["Webhook"] = models.JenkinsHook{HookEvent: &models.HookEvent{}}
+		c.Data["Webhook"] = models.PipelineHook{HookEvent: &models.HookEvent{}}
 	} else {
 		c.Data["HookFound"] = true
 		c.Data["Webhook"] = w
@@ -98,26 +98,26 @@ func JenkinsHooksEdit(c *context.Context) {
 	c.HTML(200, orCtx.NewTemplate)
 }
 
-func checkJenkinsHook(c *context.Context) (*OrgRepoCtx, *models.JenkinsHook) {
+func checkPipelineHook(c *context.Context) (*OrgRepoCtx, *models.PipelineHook) {
 	c.Data["RequireHighlightJS"] = true
 
-	orCtx, err := getJenkinsOrgRepoCtx(c)
+	orCtx, err := getPipelineOrgRepoCtx(c)
 	if err != nil {
 		c.Handle(500, "getOrgRepoCtx", err)
 		return nil, nil
 	}
 	c.Data["BaseLink"] = orCtx.Link
 
-	var w *models.JenkinsHook
+	var w *models.PipelineHook
 
 	if orCtx.RepoID > 0 {
-		w, err = models.GetJenkinsHookOfRepoByID(c.Repo.Repository.ID, c.ParamsInt64(":id"))
+		w, err = models.GetPipelineHookOfRepoByID(c.Repo.Repository.ID, c.ParamsInt64(":id"))
 	} else if orCtx.OrgID > 0 {
-		w, err = models.GetJenkinsHookByOrgID(c.Org.Organization.ID, c.ParamsInt64(":id"))
+		w, err = models.GetPipelineHookByOrgID(c.Org.Organization.ID, c.ParamsInt64(":id"))
 	}
 	if err != nil {
-		//c.NotFoundOrServerError("GetJenkinsHookOfRepoByID/GetJenkinsHookByOrgID", errors.IsWebhookNotExist, err)
-		//w = &models.JenkinsHook{HookEvent: &models.HookEvent{}}
+		//c.NotFoundOrServerError("GetPipelineHookOfRepoByID/GetPipelineHookByOrgID", errors.IsWebhookNotExist, err)
+		//w = &models.PipelineHook{HookEvent: &models.HookEvent{}}
 		return orCtx, nil
 	}
 
@@ -128,7 +128,7 @@ func checkJenkinsHook(c *context.Context) (*OrgRepoCtx, *models.JenkinsHook) {
 	return orCtx, w
 }
 
-func getJenkinsOrgRepoCtx(c *context.Context) (*OrgRepoCtx, error) {
+func getPipelineOrgRepoCtx(c *context.Context) (*OrgRepoCtx, error) {
 	if len(c.Repo.RepoLink) > 0 {
 		c.Data["PageIsRepositoryContext"] = true
 		return &OrgRepoCtx{

@@ -458,7 +458,7 @@ func runWeb(c *cli.Context) error {
 						Post(repo.SettingsGitHooksEditPost)
 				}, context.GitHookService())
 
-				m.Combo("/pipeline").Get(repo.JenkinsHooksEdit).Post(bindIgnErr(form.NewWebhook{}), repo.JenkinsHooksEditPost)
+				m.Combo("/pipeline").Get(repo.PipelineHooksEdit).Post(bindIgnErr(form.NewWebhook{}), repo.PipelineHooksEditPost)
 			})
 
 			m.Group("/keys", func() {

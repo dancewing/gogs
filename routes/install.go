@@ -25,12 +25,12 @@ import (
 	"github.com/gogits/gogs/pkg/form"
 	"github.com/gogits/gogs/pkg/mailer"
 	"github.com/gogits/gogs/pkg/markup"
-	"github.com/gogits/gogs/pkg/search"
 	"github.com/gogits/gogs/pkg/setting"
 	"github.com/gogits/gogs/pkg/ssh"
 	"github.com/gogits/gogs/pkg/template/highlight"
 	"github.com/gogits/gogs/pkg/tool"
 	"github.com/gogits/gogs/pkg/user"
+	"github.com/gogits/gogs/pkg/search"
 )
 
 const (
@@ -76,7 +76,7 @@ func GlobalInit() {
 		cron.NewContext()
 		models.InitSyncMirrors()
 		models.InitDeliverHooks()
-		models.InitJenkinsDeliverHooks()
+		models.InitPipelineDeliverHooks()
 		models.InitTestPullRequests()
 	}
 	if models.EnableSQLite3 {

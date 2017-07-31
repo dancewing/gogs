@@ -1,11 +1,11 @@
-package jenkins_test
+package pipeline_test
 
 import (
 	"testing"
 
 	"fmt"
 
-	"github.com/gogits/gogs/pkg/jenkins"
+	"github.com/gogits/gogs/pkg/pipeline"
 )
 
 const file_content = `
@@ -51,7 +51,7 @@ deploy_sit:
 
 func Test_Loading_File(t *testing.T) {
 
-	def, _ := jenkins.Parse([]byte(file_content))
+	def, _ := pipeline.Parse([]byte(file_content))
 
 	fmt.Printf("%v \n", def)
 }

@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	git "github.com/gogits/git-module"
-	"github.com/gogits/gogs/pkg/jenkins"
+	"github.com/gogits/gogs/pkg/pipeline"
 )
 
 const JENKINS_CI_FILE = ".jenkins-ci.yml"
@@ -31,10 +31,10 @@ type Job struct {
 	Stage           string
 	Environment     string
 	HookTaskID      int64
-	JenkinsHookTask *JenkinsHookTask `xorm:"-"`
+	JenkinsHookTask *PipelineHookTask `xorm:"-"`
 }
 
-func GetCIFileFromGit(owner *User, repository *Repository) (*jenkins.JobDefinition, error) {
+func GetCIFileFromGit(owner *User, repository *Repository) (*pipeline.JobDefinition, error) {
 	repoPath := RepoPath(owner.Name, repository.Name)
 	repo, err := git.OpenRepository(repoPath)
 
@@ -57,10 +57,10 @@ func GetCIFileFromGit(owner *User, repository *Repository) (*jenkins.JobDefiniti
 	if err != nil {
 		return nil, err
 	}
-	return jenkins.Parse([]byte(data))
+	return pipeline.Parse([]byte(data))
 }
 
-func CreatePipeline(e Engine, def *jenkins.Pipeline, repo *Repository, hookTaskID int64) error {
+func CreatePipeline(e Engine, def *pipeline.Pipeline, repo *Repository, hookTaskID int64) error {
 
 	pipeline := Pipeline{
 		Status:       0,
