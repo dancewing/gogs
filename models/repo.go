@@ -690,6 +690,8 @@ func MigrateRepository(doer, owner *User, opts MigrateRepoOptions) (*Repository,
 		repo.NumWatches = 1
 	}
 
+	repo.GitInitialized = true
+
 	migrateTimeout := time.Duration(setting.Git.Timeout.Migrate) * time.Second
 
 	RemoveAllWithNotice("Repository path erase before creation", repoPath)

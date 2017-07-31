@@ -457,6 +457,8 @@ func runWeb(c *cli.Context) error {
 					m.Combo("/:name").Get(repo.SettingsGitHooksEdit).
 						Post(repo.SettingsGitHooksEditPost)
 				}, context.GitHookService())
+
+				m.Combo("/pipeline").Get(repo.JenkinsHooksEdit).Post(bindIgnErr(form.NewWebhook{}), repo.JenkinsHooksEditPost)
 			})
 
 			m.Group("/keys", func() {
@@ -486,6 +488,14 @@ func runWeb(c *cli.Context) error {
 		m.Get("/labels/", repo.RetrieveLabels, repo.RetrieveLabelGroups, repo.Labels)
 
 		m.Get("/milestones", repo.Milestones)
+
+		m.Group("/pipelines", func() {
+			m.Get("", repo.ListPipelines)
+			m.Combo("/new").Get(repo.NewPipeline).Post(repo.NewPipelinePost)
+			m.Get("/jobs", repo.ListJobs)
+			m.Get("/environments", repo.ListEnvironments)
+		}, repo.RetrievePipeline)
+
 	}, ignSignIn, context.RepoAssignment(true))
 
 	m.Group("/:username/:reponame", func() {
@@ -529,12 +539,12 @@ func runWeb(c *cli.Context) error {
 			m.Post("/delete", repo.DeleteLabel)
 			m.Post("/initialize", bindIgnErr(form.InitializeLabels{}), repo.InitializeLabels)
 
-			m.Group("/group", func(){
+			m.Group("/group", func() {
 				m.Combo("").Get(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup).
 					Post(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup)
 
 				m.Combo("/:group").Get(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, repo.LabelsByGroup).
-					Post(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups,bindIgnErr(form.BatchUpdateLabel{}), repo.BatchUpdateLabelsByGroup)
+					Post(repo.RetrieveLabelsByGroup, repo.RetrieveLabelGroups, bindIgnErr(form.BatchUpdateLabel{}), repo.BatchUpdateLabelsByGroup)
 			})
 
 		}, reqRepoWriter, context.RepoRef())

@@ -71,6 +71,9 @@
 					<i class="octicon octicon-book"></i> {{.i18n.Tr "repo.wiki"}}
 				</a>
 			{{end}}
+				<a class="{{if .PageIsPipelines}}active{{end}} item" href="{{.RepoLink}}/pipelines">
+					<i class="octicon octicon-tools"></i> Pipelines
+				</a>
 			{{if .IsRepositoryAdmin}}
 				<div class="right menu">
 					<a class="{{if .PageIsSettings}}active{{end}} item" href="{{.RepoLink}}/settings">

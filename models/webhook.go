@@ -349,12 +349,14 @@ const (
 	GOGS HookTaskType = iota + 1
 	SLACK
 	DISCORD
+	JENKINS
 )
 
 var hookTaskTypes = map[string]HookTaskType{
 	"gogs":    GOGS,
 	"slack":   SLACK,
 	"discord": DISCORD,
+	"jenkins": JENKINS,
 }
 
 // ToHookTaskType returns HookTaskType by given name.
@@ -370,6 +372,8 @@ func (t HookTaskType) Name() string {
 		return "slack"
 	case DISCORD:
 		return "discord"
+	case JENKINS:
+		return "jenkins"
 	}
 	return ""
 }
@@ -628,6 +632,9 @@ func prepareWebhooks(e Engine, repo *Repository, event HookEventType, p api.Payl
 
 // PrepareWebhooks adds all active webhooks to task queue.
 func PrepareWebhooks(repo *Repository, event HookEventType, p api.Payloader) error {
+
+	prepareJekinshooks(x, repo, event, p)
+
 	return prepareWebhooks(x, repo, event, p)
 }
 

@@ -76,6 +76,7 @@ func GlobalInit() {
 		cron.NewContext()
 		models.InitSyncMirrors()
 		models.InitDeliverHooks()
+		models.InitJenkinsDeliverHooks()
 		models.InitTestPullRequests()
 	}
 	if models.EnableSQLite3 {

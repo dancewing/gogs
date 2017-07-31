@@ -23,6 +23,7 @@ func RetrieveLabelGroups(c *context.Context) {
 	}
 
 	c.Data["LabelGroups"] = groups
+
 }
 
 func RetrieveLabelsByGroup(c *context.Context) {

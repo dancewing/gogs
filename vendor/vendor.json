@@ -655,6 +655,12 @@
 			"path": "gopkg.in/redis.v2",
 			"revision": "e6179049628164864e6e84e973cfb56335748dea",
 			"revisionTime": "2014-12-09T11:07:59Z"
+		},
+		{
+			"checksumSHA1": "o20lmjzBQyKD5LfLZ3OhUoMkLds=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "25c4ec802a7d637f88d584ab26798e94ad14c13b",
+			"revisionTime": "2017-07-21T12:20:51Z"
 		}
 	],
 	"rootPath": "github.com/gogits/gogs"

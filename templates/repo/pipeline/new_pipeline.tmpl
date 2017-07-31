@@ -1,0 +1,48 @@
+{{template "base/head" .}}
+<div class="repository quickstart">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div class="navbar">
+			{{template "repo/pipeline/navbar" .}}
+		</div>
+
+		<div class="ui divider"></div>
+
+		{{template "base/alert" .}}
+		<form class="ui form grid" action="{{.Link}}" method="post">
+			{{.CSRFTokenHTML}}
+			<div class="eleven wide column">
+				<div class="field {{if .Err_Title}}error{{end}}">
+					<label>Create for</label>
+
+					<div class="required inline field {{if .Repository.IsBare}}disabled{{end}}">
+						<div class="ui selection dropdown">
+							<input type="hidden" id="branch" name="branch" value="{{.Repository.DefaultBranch}}">
+							<div class="text">{{.Repository.DefaultBranch}}</div>
+							<i class="dropdown icon"></i>
+							<div class="menu">
+								{{range .Branches}}
+								<div class="item" data-value="{{.}}">{{.}}</div>
+								{{end}}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="ui container">
+				<div class="ui divider"></div>
+				<div class="ui">
+					<button class="ui green button">
+							Create Pipeline
+					</button>
+				</div>
+				<div class="ui right">
+					<a class="ui blue basic button" href="{{.RepoLink}}/pipelines">
+						Cancel
+					</a>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{{template "base/footer" .}}

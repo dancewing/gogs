@@ -1,0 +1,24 @@
+{{template "base/head" .}}
+<div class="repository quickstart">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div class="navbar">
+			{{template "repo/pipeline/navbar" .}}
+			<div class="ui right">
+				{{if .IsRepositoryAdmin}}
+					<a class="ui green button" href="{{.RepoLink}}/pipelines/new">Run Pipeline</a>
+				{{end}}
+			</div>
+		</div>
+
+		<div class="ui divider"></div>
+
+		<div class="ui grid">
+			<div class="sixteen wide column content">
+				{{template "base/alert" .}}
+
+			</div>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}
