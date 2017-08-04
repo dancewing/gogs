@@ -1,0 +1,73 @@
+{{template "base/head" .}}
+<div class="repository quickstart">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div class="navbar">
+			{{template "repo/pipeline/navbar" .}}
+			<div class="ui right">
+				{{if .IsRepositoryAdmin}}
+				<a class="ui green button" href="{{.RepoLink}}/pipelines/new">Run Pipeline</a>
+				{{end}}
+			</div>
+		</div>
+
+		<div class="ui divider"></div>
+
+
+		<div class="ui grid">
+			<div class="sixteen wide column content">
+				{{template "base/alert" .}}
+
+				<table class="ui celled definition table">
+					<thead>
+					<tr>
+						<th class="collapsing"></th>
+						<th>Job</th>
+						<th>Pipeline</th>
+						<th>Stage</th>
+						<th>Name</th>
+						<th></th>
+					</tr></thead>
+					<tbody>
+
+					{{range .Jobs}}
+					<tr>
+						<td>status</td>
+						<td><a class="title has-emoji" href="{{$.Link}}/{{.ID}}">#{{.ID}}</a></td>
+						<td>#{{.PipelineID}}</td>
+						<td>{{.Stage}}</td>
+						<td>{{.JobName}}</td>
+						<td></td>
+					</tr>
+					{{end}}
+					</tbody>
+				</table>
+
+				{{with .Page}}
+				{{if gt .TotalPages 1}}
+				<div class="center page buttons">
+					<div class="ui borderless pagination menu">
+						<a class="{{if not .HasPrevious}}disabled{{end}} item" {{if .HasPrevious}}href="{{$.Link}}?page={{.Previous}}"{{end}}>
+							<i class="left arrow icon"></i> {{$.i18n.Tr "repo.issues.previous"}}
+						</a>
+						{{range .Pages}}
+						{{if eq .Num -1}}
+						<a class="disabled item">...</a>
+						{{else}}
+						<a class="{{if .IsCurrent}}active{{end}} item" {{if not .IsCurrent}}href="{{$.Link}}?page={{.Num}}"{{end}}>{{.Num}}</a>
+						{{end}}
+						{{end}}
+						<a class="{{if not .HasNext}}disabled{{end}} item" {{if .HasNext}}href="{{$.Link}}?page={{.Next}}"{{end}}>
+							{{$.i18n.Tr "repo.issues.next"}}&nbsp;<i class="icon right arrow"></i>
+						</a>
+					</div>
+				</div>
+				{{end}}
+				{{end}}
+
+			</div>
+		</div>
+
+	</div>
+</div>
+{{template "base/footer" .}}

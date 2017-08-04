@@ -34,7 +34,6 @@ type PipelineHook struct {
 	ID          int64
 	RepoID      int64
 	OrgID       int64
-	URL         string `xorm:"url TEXT"`
 	ContentType HookContentType
 	Secret      string `xorm:"TEXT"`
 	Events      string `xorm:"TEXT"`
@@ -169,6 +168,8 @@ type PipelineHookTask struct {
 	Delivered       int64
 	DeliveredString string `xorm:"-"`
 
+	CallbackURL string `xorm:"TEXT"`
+
 	// History info.
 	IsSucceed       bool
 	RequestContent  string        `xorm:"TEXT"`
@@ -272,7 +273,7 @@ func GetPipelineHookByID(id int64) (*PipelineHook, error) {
 }
 
 // prepareHookTasks adds list of webhooks to task queue.
-func preparePipelineHookTasks(e Engine, repo *Repository, event HookEventType, p api.Payloader, webhooks []*PipelineHook) (err error) {
+func preparePipelineHookTasks(e Engine, repo *Repository, event HookEventType, p api.Payloader, webhooks []*PipelineHook, job *Job) (err error) {
 	if len(webhooks) == 0 {
 		return nil
 	}
@@ -327,30 +328,31 @@ func preparePipelineHookTasks(e Engine, repo *Repository, event HookEventType, p
 			signature = hex.EncodeToString(sig.Sum(nil))
 		}
 
+		callbackURL := setting.AppURL + "api/v1/pipeline/callback"
+
 		hookTask := &PipelineHookTask{
 			RepoID:      repo.ID,
 			HookID:      w.ID,
-			URL:         w.URL,
+			URL:         job.JobURL,
 			Signature:   signature,
 			Payloader:   payloader,
 			ContentType: w.ContentType,
 			EventType:   event,
 			IsSSL:       w.IsSSL,
+			CallbackURL: callbackURL,
 		}
 
 		if err = createPipelineHookTask(e, hookTask); err != nil {
 			return fmt.Errorf("createHookTask: %v", err)
 		}
 
-		def, err := GetCIFileFromGit(repo.Owner, repo)
+		job.HookTaskID = hookTask.ID
+		job.DeliveryUUID = hookTask.UUID
+		err = UpdateJob(job)
+		if err != nil {
+			return fmt.Errorf("Error UpdateJob: %v", err)
+		}
 
-		if err != nil {
-			return fmt.Errorf("Error GetCIFileFromGit: %v", err)
-		}
-		err = CreatePipeline(e, def.Pipeline, repo, hookTask.ID)
-		if err != nil {
-			return fmt.Errorf("Error GetCIFileFromGit: %v", err)
-		}
 	}
 
 	// It's safe to fail when the whole function is called during hook execution
@@ -379,7 +381,37 @@ func UpdatePipelineHookTask(t *PipelineHookTask) error {
 	return err
 }
 
-func prepareJekinshooks(e Engine, repo *Repository, event HookEventType, p api.Payloader) error {
+func getPipelineHookTaskByID(e Engine, id int64) (*PipelineHookTask, error) {
+	m := &PipelineHookTask{
+		ID: id,
+	}
+	has, err := e.Get(m)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, ErrPipelineNotExist{id}
+	}
+	return m, nil
+}
+
+func GetPipelineHookTask(taskID int64) (*PipelineHookTask, error) {
+	return getPipelineHookTaskByID(x, taskID)
+}
+
+func GetPipelineHookTaskByUUID(uuid string) (*PipelineHookTask, error) {
+	task := &PipelineHookTask{
+		UUID: uuid,
+	}
+	has, err := x.Get(task)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, ErrPipelineHookTaskNotExist{0, uuid}
+	}
+	return task, nil
+}
+
+func preparePipelineHooks(e Engine, repo *Repository, event HookEventType, p api.Payloader) error {
 	webhooks, err := getActivePipelineHooksByRepoID(e, repo.ID)
 	if err != nil {
 		return fmt.Errorf("getActiveWebhooksByRepoID [%d]: %v", repo.ID, err)
@@ -394,7 +426,42 @@ func prepareJekinshooks(e Engine, repo *Repository, event HookEventType, p api.P
 		}
 		webhooks = append(webhooks, orgws...)
 	}
-	return preparePipelineHookTasks(e, repo, event, p, webhooks)
+
+	def, err := GetCIFileFromGit(repo.Owner, repo)
+	if err != nil {
+		return fmt.Errorf("Error GetCIFileFromGit: %v", err)
+	}
+
+	job, err := CreatePipeline(e, def, repo)
+	if err != nil {
+		return fmt.Errorf("Error CreatePipeline: %v", err)
+	}
+
+	return preparePipelineHookTasks(e, repo, event, p, webhooks, job)
+}
+
+func PreparePipelineNextHook(repo *Repository, job *Job) error {
+
+	webhooks, err := getActivePipelineHooksByRepoID(x, repo.ID)
+	if err != nil {
+		return fmt.Errorf("getActiveWebhooksByRepoID [%d]: %v", repo.ID, err)
+	}
+
+	// check if repo belongs to org and append additional webhooks
+	if repo.mustOwner(x).IsOrganization() {
+		// get hooks for org
+		orgws, err := getActivePipelineHooksByOrgID(x, repo.OwnerID)
+		if err != nil {
+			return fmt.Errorf("getActiveWebhooksByOrgID [%d]: %v", repo.OwnerID, err)
+		}
+		webhooks = append(webhooks, orgws...)
+	}
+
+	p := &HookPayload{
+		Repo: repo.APIFormat(nil),
+	}
+
+	return preparePipelineHookTasks(x, repo, "hook", p, webhooks, job)
 }
 
 func (t *PipelineHookTask) deliver() {
@@ -405,6 +472,7 @@ func (t *PipelineHookTask) deliver() {
 		Header("X-Gogs-Delivery", t.UUID).
 		Header("X-Gogs-Signature", t.Signature).
 		Header("X-Gogs-Event", string(t.EventType)).
+		Header("X-Gogs-Callback", string(t.CallbackURL)).
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: setting.Webhook.SkipTLSVerify})
 
 	switch t.ContentType {
@@ -513,3 +581,41 @@ func DeliverPipelineHooks() {
 func InitPipelineDeliverHooks() {
 	go DeliverPipelineHooks()
 }
+
+type ErrPipelineHookNotExist struct {
+	ID int64
+}
+
+func IsErrPipelineHookNotExist(err error) bool {
+	_, ok := err.(ErrPipelineHookNotExist)
+	return ok
+}
+
+func (err ErrPipelineHookNotExist) Error() string {
+	return fmt.Sprintf("PipelineHook does not exist [id: %d ]", err.ID)
+}
+
+type ErrPipelineHookTaskNotExist struct {
+	ID   int64
+	UUID string
+}
+
+func IsErrPipelineHookTaskNotExist(err error) bool {
+	_, ok := err.(ErrPipelineHookNotExist)
+	return ok
+}
+
+func (err ErrPipelineHookTaskNotExist) Error() string {
+	return fmt.Sprintf("PipelineHookTask does not exist [id: %d, UUID : %s]", err.ID, err.UUID)
+}
+
+type HookPayload struct {
+	Repo *api.Repository `json:"repository"`
+	api.Payloader
+}
+
+func (p *HookPayload) JSONPayload() ([]byte, error) {
+	return json.MarshalIndent(p, "", "  ")
+}
+
+var _ api.Payloader = &HookPayload{}

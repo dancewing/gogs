@@ -39,6 +39,7 @@ import (
 	"github.com/gogits/gogs/routes"
 	"github.com/gogits/gogs/routes/admin"
 	apiboard "github.com/gogits/gogs/routes/api/board"
+	apiv1 "github.com/gogits/gogs/routes/api/v1"
 	//	"github.com/gogits/gogs/routes/dev"
 	"github.com/go-macaron/sockets"
 	"github.com/gogits/gogs/pkg/ws"
@@ -491,10 +492,21 @@ func runWeb(c *cli.Context) error {
 
 		m.Group("/pipelines", func() {
 			m.Get("", repo.ListPipelines)
+			m.Get("/:id", repo.ViewPipeline)
 			m.Combo("/new").Get(repo.NewPipeline).Post(repo.NewPipelinePost)
 			m.Get("/jobs", repo.ListJobs)
-			m.Get("/environments", repo.ListEnvironments)
+
 		}, repo.RetrievePipeline)
+
+		m.Group("/jobs", func() {
+			m.Get("", repo.ListJobs)
+			m.Get("/:id", repo.ViewJob)
+		}, repo.RetrievePipeline)
+
+		m.Group("/environments", func() {
+			m.Get("", repo.ListEnvironments)
+			m.Get("/:id", repo.ViewEnvironment)
+		})
 
 	}, ignSignIn, context.RepoAssignment(true))
 
@@ -685,7 +697,7 @@ func runWeb(c *cli.Context) error {
 	m.Get("/ws/", sockets.Messages(), ws.ListenAndServe)
 
 	m.Group("/api", func() {
-		//apiv1.RegisterRoutes(m)
+		apiv1.RegisterRoutes(m)
 		apiboard.RegisterBoardRoutes(m)
 	})
 

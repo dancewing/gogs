@@ -27,6 +27,22 @@ func (def *JobDefinition) String() string {
 		def.Host, def.Docker, strings.Join(def.Environments, ","), strings.Join(def.Stages, ","), def.Jobs, def.Pipeline)
 }
 
+func (def *JobDefinition) GetJobURL(job *Job) (host string) {
+
+	host = job.JenkinsHost
+	jobName := job.JenkinsJob
+	if host == "" {
+		host = def.Host
+	}
+	if strings.LastIndex(host, "/") != (len(host) - 1) {
+		host = host + "/gogs-webhook/?job=" + jobName
+	} else {
+		host = host + "gogs-webhook/?job=" + jobName
+	}
+
+	return host
+}
+
 type Pipeline struct {
 	Jobs []*Job
 }

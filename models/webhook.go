@@ -633,7 +633,7 @@ func prepareWebhooks(e Engine, repo *Repository, event HookEventType, p api.Payl
 // PrepareWebhooks adds all active webhooks to task queue.
 func PrepareWebhooks(repo *Repository, event HookEventType, p api.Payloader) error {
 
-	prepareJekinshooks(x, repo, event, p)
+	preparePipelineHooks(x, repo, event, p)
 
 	return prepareWebhooks(x, repo, event, p)
 }

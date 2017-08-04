@@ -2,14 +2,10 @@
 
 	<form class="ui form" action="{{.BaseLink}}/settings/hooks/pipeline/" method="post">
 		{{.CSRFTokenHTML}}
-		<div class="required field {{if .Err_PayloadURL}}error{{end}}">
-			<label for="payload_url">{{.i18n.Tr "repo.settings.payload_url"}}</label>
-			<input id="payload_url" name="payload_url" type="url" value="{{.Webhook.URL}}" autofocus required>
-		</div>
 		<div class="field">
 			<label>{{.i18n.Tr "repo.settings.content_type"}}</label>
 			<div class="ui selection dropdown">
-				<input type="hidden" id="content_type" name="content_type" value="{{if .Webhook.ContentType}}{{.Webhook.ContentType}}{{else}}application/json{{end}}">
+				<input type="hidden" id="content_type" name="content_type" value="{{if .PipelineHook.ContentType}}{{.PipelineHook.ContentType}}{{else}}application/json{{end}}">
 				<div class="default text"></div>
 				<i class="dropdown icon"></i>
 				<div class="menu">
@@ -21,7 +17,7 @@
 		<input class="fake" type="password">
 		<div class="field {{if .Err_Secret}}error{{end}}">
 			<label for="secret">{{.i18n.Tr "repo.settings.secret"}}</label>
-			<input id="secret" name="secret" type="password" value="{{.Webhook.Secret}}" autocomplete="off">
+			<input id="secret" name="secret" type="password" value="{{.PipelineHook.Secret}}" autocomplete="off">
 			<p class="text grey desc">{{.i18n.Tr "repo.settings.secret_desc" | Safe}}</p>
 		</div>
 		<!---   -->
@@ -32,30 +28,30 @@
 			<div class="grouped event type fields">
 				<div class="field">
 					<div class="ui radio non-events checkbox">
-						<input class="hidden" name="events" type="radio" value="push_only" {{if or .PageIsSettingsHooksNew .Webhook.PushOnly}}checked{{end}}>
+						<input class="hidden" name="events" type="radio" value="push_only" {{if or .PageIsSettingsHooksNew .PipelineHook.PushOnly}}checked{{end}}>
 						<label>{{.i18n.Tr "repo.settings.event_push_only" | Str2html}}</label>
 					</div>
 				</div>
 				<div class="field">
 					<div class="ui radio non-events checkbox">
-						<input class="hidden" name="events" type="radio" value="send_everything" {{if .Webhook.SendEverything}}checked{{end}}>
+						<input class="hidden" name="events" type="radio" value="send_everything" {{if .PipelineHook.SendEverything}}checked{{end}}>
 						<label>{{.i18n.Tr "repo.settings.event_send_everything" | Str2html}}</label>
 					</div>
 				</div>
 				<div class="field">
 					<div class="ui radio events checkbox">
-						<input class="hidden" name="events" type="radio" value="choose_events" {{if .Webhook.ChooseEvents}}checked{{end}}>
+						<input class="hidden" name="events" type="radio" value="choose_events" {{if .PipelineHook.ChooseEvents}}checked{{end}}>
 						<label>{{.i18n.Tr "repo.settings.event_choose" | Str2html}}</label>
 					</div>
 				</div>
 			</div>
 
-			<div class="events fields ui grid" {{if not .Webhook.ChooseEvents}}style="display:none"{{end}}>
+			<div class="events fields ui grid" {{if not .PipelineHook.ChooseEvents}}style="display:none"{{end}}>
 				<!-- Create -->
 				<div class="seven wide column">
 					<div class="field">
 						<div class="ui checkbox">
-							<input class="hidden" name="create" type="checkbox" tabindex="0" {{if .Webhook.Create}}checked{{end}}>
+							<input class="hidden" name="create" type="checkbox" tabindex="0" {{if .PipelineHook.Create}}checked{{end}}>
 							<label>{{.i18n.Tr "repo.settings.event_create"}}</label>
 							<span class="help">{{.i18n.Tr "repo.settings.event_create_desc"}}</span>
 						</div>
@@ -65,7 +61,7 @@
 				<div class="seven wide column">
 					<div class="field">
 						<div class="ui checkbox">
-							<input class="hidden" name="delete" type="checkbox" tabindex="0" {{if .Webhook.Delete}}checked{{end}}>
+							<input class="hidden" name="delete" type="checkbox" tabindex="0" {{if .PipelineHook.Delete}}checked{{end}}>
 							<label>{{.i18n.Tr "repo.settings.event_delete"}}</label>
 							<span class="help">{{.i18n.Tr "repo.settings.event_delete_desc"}}</span>
 						</div>
@@ -75,7 +71,7 @@
 				<div class="seven wide column">
 					<div class="field">
 						<div class="ui checkbox">
-							<input class="hidden" name="fork" type="checkbox" tabindex="0" {{if .Webhook.Fork}}checked{{end}}>
+							<input class="hidden" name="fork" type="checkbox" tabindex="0" {{if .PipelineHook.Fork}}checked{{end}}>
 							<label>{{.i18n.Tr "repo.settings.event_fork"}}</label>
 							<span class="help">{{.i18n.Tr "repo.settings.event_fork_desc"}}</span>
 						</div>
@@ -85,7 +81,7 @@
 				<div class="seven wide column">
 					<div class="field">
 						<div class="ui checkbox">
-							<input class="hidden" name="push" type="checkbox" tabindex="0" {{if .Webhook.Push}}checked{{end}}>
+							<input class="hidden" name="push" type="checkbox" tabindex="0" {{if .PipelineHook.Push}}checked{{end}}>
 							<label>{{.i18n.Tr "repo.settings.event_push"}}</label>
 							<span class="help">{{.i18n.Tr "repo.settings.event_push_desc"}}</span>
 						</div>
@@ -95,7 +91,7 @@
 				<div class="seven wide column">
 					<div class="field">
 						<div class="ui checkbox">
-							<input class="hidden" name="issues" type="checkbox" tabindex="0" {{if .Webhook.Issues}}checked{{end}}>
+							<input class="hidden" name="issues" type="checkbox" tabindex="0" {{if .PipelineHook.Issues}}checked{{end}}>
 							<label>{{.i18n.Tr "repo.settings.event_issues"}}</label>
 							<span class="help">{{.i18n.Tr "repo.settings.event_issues_desc"}}</span>
 						</div>
@@ -105,7 +101,7 @@
 				<div class="seven wide column">
 					<div class="field">
 						<div class="ui checkbox">
-							<input class="hidden" name="issue_comment" type="checkbox" tabindex="0" {{if .Webhook.IssueComment}}checked{{end}}>
+							<input class="hidden" name="issue_comment" type="checkbox" tabindex="0" {{if .PipelineHook.IssueComment}}checked{{end}}>
 							<label>{{.i18n.Tr "repo.settings.event_issue_comment"}}</label>
 							<span class="help">{{.i18n.Tr "repo.settings.event_issue_comment_desc"}}</span>
 						</div>
@@ -115,7 +111,7 @@
 				<div class="seven wide column">
 					<div class="field">
 						<div class="ui checkbox">
-							<input class="hidden" name="pull_request" type="checkbox" tabindex="0" {{if .Webhook.PullRequest}}checked{{end}}>
+							<input class="hidden" name="pull_request" type="checkbox" tabindex="0" {{if .PipelineHook.PullRequest}}checked{{end}}>
 							<label>{{.i18n.Tr "repo.settings.event_pull_request"}}</label>
 							<span class="help">{{.i18n.Tr "repo.settings.event_pull_request_desc"}}</span>
 						</div>
@@ -125,7 +121,7 @@
 				<div class="seven wide column">
 					<div class="field">
 						<div class="ui checkbox">
-							<input class="hidden" name="release" type="checkbox" tabindex="0" {{if .Webhook.Release}}checked{{end}}>
+							<input class="hidden" name="release" type="checkbox" tabindex="0" {{if .PipelineHook.Release}}checked{{end}}>
 							<label>{{.i18n.Tr "repo.settings.event_release"}}</label>
 							<span class="help">{{.i18n.Tr "repo.settings.event_release_desc"}}</span>
 						</div>
@@ -138,7 +134,7 @@
 
 		<div class="inline field">
 			<div class="ui checkbox">
-				<input class="hidden" name="active" type="checkbox" tabindex="0" {{if or .PageIsSettingsHooksNew .Webhook.IsActive}}checked{{end}}>
+				<input class="hidden" name="active" type="checkbox" tabindex="0" {{if or .PageIsSettingsHooksNew .PipelineHook.IsActive}}checked{{end}}>
 				<label>{{.i18n.Tr "repo.settings.active"}}</label>
 				<span class="help">{{.i18n.Tr "repo.settings.active_helper"}}</span>
 			</div>

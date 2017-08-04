@@ -11,11 +11,11 @@ const (
 	PIPELINE_HOOK_EDIT = "repo/settings/pipeline_hook_edit"
 )
 
-func PipelineHooksEditPost(c *context.Context, f form.NewWebhook) {
+func PipelineHooksEditPost(c *context.Context, f form.NewPipelineHook) {
 	c.Data["Title"] = c.Tr("repo.settings.add_webhook")
 	c.Data["PageIsSettingsHooks"] = true
 	c.Data["PageIsSettingsHooksNew"] = true
-	c.Data["Webhook"] = models.Webhook{HookEvent: &models.HookEvent{}}
+	c.Data["PipelineHook"] = models.PipelineHook{HookEvent: &models.HookEvent{}}
 	c.Data["HookType"] = "jenkins"
 
 	//orCtx, err := getOrgRepoCtx(c)
@@ -39,7 +39,6 @@ func PipelineHooksEditPost(c *context.Context, f form.NewWebhook) {
 	if w == nil {
 		w = &models.PipelineHook{
 			RepoID:      orCtx.RepoID,
-			URL:         f.PayloadURL,
 			ContentType: contentType,
 			Secret:      f.Secret,
 			HookEvent:   ParseHookEvent(f.Webhook),
@@ -57,7 +56,6 @@ func PipelineHooksEditPost(c *context.Context, f form.NewWebhook) {
 
 	} else {
 		w.RepoID = orCtx.RepoID
-		w.URL = f.PayloadURL
 		w.ContentType = contentType
 		w.Secret = f.Secret
 		w.HookEvent = ParseHookEvent(f.Webhook)
@@ -89,10 +87,10 @@ func PipelineHooksEdit(c *context.Context) {
 
 	if w == nil {
 		c.Data["HookFound"] = false
-		c.Data["Webhook"] = models.PipelineHook{HookEvent: &models.HookEvent{}}
+		c.Data["PipelineHook"] = models.PipelineHook{HookEvent: &models.HookEvent{}}
 	} else {
 		c.Data["HookFound"] = true
-		c.Data["Webhook"] = w
+		c.Data["PipelineHook"] = w
 	}
 
 	c.HTML(200, orCtx.NewTemplate)
