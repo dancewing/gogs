@@ -43,7 +43,7 @@ func ServicesEdit(c *context.Context) {
 	}
 	switch serviceType {
 	case models.JENKINS:
-		c.Data["ServiceConfig"] = models.ToJenkinsServiceConfigEdit(config)
+		c.Data["ServiceConfig"] = models.ToJenkinsServiceConfigLoad(config)
 	}
 
 	orCtx, err := getOrgRepoCtxForService(c)
@@ -118,7 +118,7 @@ func ServicesJenkinsPost(c *context.Context, edit models.JenkinsServiceConfigLoa
 		config, err = models.UpdateConfiguration(config, edit)
 	}
 
-	c.Data["ServiceConfig"] = models.ToJenkinsServiceConfigEdit(config)
+	c.Data["ServiceConfig"] = models.ToJenkinsServiceConfigLoad(config)
 
 }
 

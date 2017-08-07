@@ -7,14 +7,9 @@ import (
 
 	"fmt"
 
-	"crypto/tls"
-	"io/ioutil"
-	"strings"
-
 	"github.com/go-xorm/xorm"
 	api "github.com/gogits/go-gogs-client"
 	"github.com/gogits/gogs/models/errors"
-	"github.com/gogits/gogs/pkg/httplib"
 	"github.com/gogits/gogs/pkg/setting"
 	"github.com/gogits/gogs/pkg/sync"
 	gouuid "github.com/satori/go.uuid"
@@ -84,7 +79,6 @@ func (sc *ServiceConfig) BeforeUpdate() {
 }
 
 func (sc *ServiceConfig) AfterSet(colName string, _ xorm.Cell) {
-
 	var err error
 	switch colName {
 	case "created_unix":
@@ -220,109 +214,26 @@ func GetAllServicesByRepoID(repoID int64) ([]*ServiceConfig, error) {
 	return allServices, nil
 }
 
-type ServiceConfigLoad struct {
-	Events       string `json:"-"`
-	Create       bool   `json:"-"`
-	Delete       bool   `json:"-"`
-	Fork         bool   `json:"-"`
-	Push         bool   `json:"-"`
-	Issues       bool   `json:"-"`
-	IssueComment bool   `json:"-"`
-	PullRequest  bool   `json:"-"`
-	Release      bool   `json:"-"`
-	IsActive     bool   `json:"-"`
-
-	*HookEvent
-}
-
-func (f ServiceConfigLoad) PushOnly() bool {
-	return f.Events == "push_only"
-}
-
-func (f ServiceConfigLoad) SendEverything() bool {
-	return f.Events == "send_everything"
-}
-
-func (f ServiceConfigLoad) ChooseEvents() bool {
-	return f.Events == "choose_events"
-}
-
-func (config *ServiceConfigLoad) ReadEvent() {
-
-	if config.HookEvent == nil {
-		return
-	}
-
-	if config.HookEvent.PushOnly {
-		config.Events = "push_only"
-	}
-	if config.HookEvent.SendEverything {
-		config.Events = "send_everything"
-	}
-	if config.HookEvent.ChooseEvents {
-		config.Events = "choose_events"
-	}
-
-	config.Create = config.HookEvent.HookEvents.Create
-	config.Delete = config.HookEvent.HookEvents.Delete
-	config.Fork = config.HookEvent.HookEvents.Fork
-	config.Push = config.HookEvent.HookEvents.Push
-	config.Issues = config.HookEvent.HookEvents.Issues
-	config.IssueComment = config.HookEvent.HookEvents.IssueComment
-	config.PullRequest = config.HookEvent.HookEvents.PullRequest
-	config.Release = config.HookEvent.HookEvents.Release
-
-}
-
-func (config *ServiceConfigLoad) UpdateEvent() {
-
-	if config.HookEvent == nil {
-		config.HookEvent = &HookEvent{}
-	}
-
-	config.HookEvent.PushOnly = config.PushOnly()
-	config.HookEvent.SendEverything = config.SendEverything()
-	config.HookEvent.ChooseEvents = config.ChooseEvents()
-
-	if config.ChooseEvents() {
-		config.HookEvent.HookEvents.Create = config.Create
-		config.HookEvent.HookEvents.Delete = config.Delete
-		config.HookEvent.HookEvents.Fork = config.Fork
-		config.HookEvent.HookEvents.Push = config.Push
-		config.HookEvent.HookEvents.Issues = config.Issues
-		config.HookEvent.HookEvents.IssueComment = config.IssueComment
-		config.HookEvent.HookEvents.PullRequest = config.PullRequest
-		config.HookEvent.HookEvents.Release = config.Release
-	} else {
-		config.HookEvent.HookEvents.Create = false
-		config.HookEvent.HookEvents.Delete = false
-		config.HookEvent.HookEvents.Fork = false
-		config.HookEvent.HookEvents.Push = false
-		config.HookEvent.HookEvents.Issues = false
-		config.HookEvent.HookEvents.IssueComment = false
-		config.HookEvent.HookEvents.PullRequest = false
-		config.HookEvent.HookEvents.Release = false
-	}
-}
-
 // HookTask represents a hook task.
 type ServiceTask struct {
-	ID              int64
-	RepoID          int64 `xorm:"INDEX"`
-	HookID          int64
-	UUID            string
-	URL             string `xorm:"TEXT"`
-	Signature       string `xorm:"TEXT"`
-	api.Payloader   `xorm:"-"`
-	PayloadContent  string `xorm:"TEXT"`
-	ContentType     HookContentType
-	EventType       HookEventType
+	ID     int64
+	RepoID int64 `xorm:"INDEX"`
+
+	ConfigID       int64
+	Config         *ServiceConfig `xorm:"-"`
+	UUID           string
+	URL            string `xorm:"TEXT"`
+	Signature      string `xorm:"TEXT"`
+	api.Payloader  `xorm:"-"`
+	PayloadContent string `xorm:"TEXT"`
+
+	EventType      HookEventType
+	ServiceType     ServiceType
+
 	IsSSL           bool
 	IsDelivered     bool
 	Delivered       int64
 	DeliveredString string `xorm:"-"`
-
-	CallbackURL string `xorm:"TEXT"`
 
 	// History info.
 	IsSucceed       bool
@@ -393,7 +304,7 @@ func prepareServices(e Engine, repo *Repository, event HookEventType, p api.Payl
 
 	webhooks, err := getActiveServicesByRepoID(e, repo.ID)
 	if err != nil {
-		return fmt.Errorf("getActiveWebhooksByRepoID [%d]: %v", repo.ID, err)
+		return fmt.Errorf("getActiveServicesByRepoID [%d]: %v", repo.ID, err)
 	}
 
 	// check if repo belongs to org and append additional webhooks
@@ -401,7 +312,7 @@ func prepareServices(e Engine, repo *Repository, event HookEventType, p api.Payl
 		// get hooks for org
 		orgws, err := getActiveServicesByOrgID(e, repo.OwnerID)
 		if err != nil {
-			return fmt.Errorf("getActiveWebhooksByOrgID [%d]: %v", repo.OwnerID, err)
+			return fmt.Errorf("getActiveServicesByOrgID [%d]: %v", repo.OwnerID, err)
 		}
 		webhooks = append(webhooks, orgws...)
 	}
@@ -454,14 +365,12 @@ func prepareServiceTasks(e Engine, repo *Repository, event HookEventType, p api.
 
 		payloader = p
 
-		callbackURL := setting.AppURL + "api/v1/pipeline/callback"
-
 		hookTask := &ServiceTask{
 			RepoID:      repo.ID,
-			HookID:      w.ID,
+			ConfigID:    w.ID,
 			Payloader:   payloader,
 			EventType:   event,
-			CallbackURL: callbackURL,
+			ServiceType: w.Type,
 		}
 
 		if err = createServiceTask(e, hookTask); err != nil {
@@ -522,80 +431,15 @@ func GetServiceByID(id int64) (*ServiceConfig, error) {
 }
 
 func (t *ServiceTask) deliver() {
-	t.IsDelivered = true
-
-	timeout := time.Duration(setting.Webhook.DeliverTimeout) * time.Second
-	req := httplib.Post(t.URL).SetTimeout(timeout, timeout).
-		Header("X-Gogs-Delivery", t.UUID).
-		Header("X-Gogs-Signature", t.Signature).
-		Header("X-Gogs-Event", string(t.EventType)).
-		Header("X-Gogs-Callback", string(t.CallbackURL)).
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: setting.Webhook.SkipTLSVerify})
-
-	switch t.ContentType {
-	case JSON:
-		req = req.Header("Content-Type", "application/json").Body(t.PayloadContent)
-	case FORM:
-		req.Param("payload", t.PayloadContent)
+	var delivery ServiceDelivery
+	switch t.ServiceType {
+	case JENKINS:
+		delivery = ToJenkinsServiceConfigLoad(t.Config)
 	}
 
-	// Record delivery information.
-	t.RequestInfo = &HookRequest{
-		Headers: map[string]string{},
+	if delivery != nil {
+		delivery.Deliver(t)
 	}
-	for k, vals := range req.Headers() {
-		t.RequestInfo.Headers[k] = strings.Join(vals, ",")
-	}
-
-	t.ResponseInfo = &HookResponse{
-		Headers: map[string]string{},
-	}
-
-	defer func() {
-		t.Delivered = time.Now().UnixNano()
-		if t.IsSucceed {
-			log.Trace("Hook delivered: %s", t.UUID)
-		} else {
-			log.Trace("Hook delivery failed: %s", t.UUID)
-		}
-
-		// Update webhook last delivery status.
-		w, err := GetServiceByID(t.HookID)
-		if err != nil {
-			log.Error(3, "GetWebhookByID: %v", err)
-			return
-		}
-		if t.IsSucceed {
-			w.LastStatus = SERVICE_STATUS_SUCCEED
-		} else {
-			w.LastStatus = SERVICE_STATUS_FAILED
-		}
-		if err = UpdateServiceConfig(w); err != nil {
-			log.Error(3, "UpdateWebhook: %v", err)
-			return
-		}
-	}()
-
-	resp, err := req.Response()
-	if err != nil {
-		t.ResponseInfo.Body = fmt.Sprintf("Delivery: %v", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Status code is 20x can be seen as succeed.
-	t.IsSucceed = resp.StatusCode/100 == 2
-	t.ResponseInfo.Status = resp.StatusCode
-	for k, vals := range resp.Header {
-		t.ResponseInfo.Headers[k] = strings.Join(vals, ",")
-	}
-
-	p, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.ResponseInfo.Body = fmt.Sprintf("read body: %s", err)
-		return
-	}
-	t.ResponseInfo.Body = string(p)
 }
 
 func DeliverServices() {
@@ -637,4 +481,8 @@ func DeliverServices() {
 
 func InitServices() {
 	go DeliverServices()
+}
+
+type ServiceDelivery interface {
+	Deliver(task *ServiceTask) error
 }
