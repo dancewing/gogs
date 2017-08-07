@@ -227,8 +227,8 @@ type ServiceTask struct {
 	api.Payloader  `xorm:"-"`
 	PayloadContent string `xorm:"TEXT"`
 
-	EventType      HookEventType
-	ServiceType     ServiceType
+	EventType   HookEventType
+	ServiceType ServiceType
 
 	IsSSL           bool
 	IsDelivered     bool
@@ -286,6 +286,17 @@ func (t *ServiceTask) MarshalJSON(v interface{}) string {
 		log.Error(3, "Marshal [%d]: %v", t.ID, err)
 	}
 	return string(p)
+}
+
+// History returns history of webhook by given conditions.
+func (w *ServiceConfig) History(page int) ([]*ServiceTask, error) {
+	return ServiceTasks(w.ID, page)
+}
+
+// HookTasks returns a list of hook tasks by given conditions.
+func ServiceTasks(configID int64, page int) ([]*ServiceTask, error) {
+	tasks := make([]*ServiceTask, 0, setting.Webhook.PagingNum)
+	return tasks, x.Limit(setting.Webhook.PagingNum, (page-1)*setting.Webhook.PagingNum).Where("config_id=?", configID).Desc("id").Find(&tasks)
 }
 
 // getActiveWebhooksByRepoID returns all active webhooks of repository.
@@ -421,7 +432,7 @@ func getService(bean *ServiceConfig) (*ServiceConfig, error) {
 	return bean, nil
 }
 
-// GetWebhookByID returns webhook by given ID.
+// GetServiceByID returns webhook by given ID.
 // Use this function with caution of accessing unauthorized webhook,
 // which means should only be used in non-user interactive functions.
 func GetServiceByID(id int64) (*ServiceConfig, error) {
@@ -447,6 +458,8 @@ func DeliverServices() {
 	x.Where("is_delivered = ?", false).Iterate(new(ServiceTask),
 		func(idx int, bean interface{}) error {
 			t := bean.(*ServiceTask)
+			config, _ := GetServiceByID(t.ConfigID)
+			t.Config = config
 			t.deliver()
 			tasks = append(tasks, t)
 			return nil
@@ -470,6 +483,8 @@ func DeliverServices() {
 			continue
 		}
 		for _, t := range tasks {
+			config, _ := GetServiceByID(t.ConfigID)
+			t.Config = config
 			t.deliver()
 			if err := UpdateServiceTask(t); err != nil {
 				log.Error(4, "UpdateServiceTask [%d]: %v", t.ID, err)

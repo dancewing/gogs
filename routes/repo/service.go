@@ -40,6 +40,8 @@ func ServicesEdit(c *context.Context) {
 	//Can't get configuration, maybe it's not saved
 	if err != nil {
 		c.Data["PageIsSettingsServicesIsNew"] = true
+	} else {
+		c.Data["History"], err = config.History(1)
 	}
 	switch serviceType {
 	case models.JENKINS:
@@ -116,6 +118,8 @@ func ServicesJenkinsPost(c *context.Context, edit models.JenkinsServiceConfigLoa
 
 		config.IsActive = edit.IsActive
 		config, err = models.UpdateConfiguration(config, edit)
+
+		c.Data["History"], err = config.History(1)
 	}
 
 	c.Data["ServiceConfig"] = models.ToJenkinsServiceConfigLoad(config)

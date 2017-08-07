@@ -25,6 +25,8 @@ func (load *JenkinsServiceConfigLoad) Deliver(t *ServiceTask) error {
 
 	t.IsDelivered = true
 
+	t.URL = load.JenkinsHost
+
 	timeout := time.Duration(setting.Webhook.DeliverTimeout) * time.Second
 
 	req := httplib.Post(t.URL).SetTimeout(timeout, timeout).
