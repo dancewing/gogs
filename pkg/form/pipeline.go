@@ -8,34 +8,14 @@ import (
 type NewPipelineHook struct {
 	ContentType int `binding:"Required"`
 	Secret      string
+	JenkinsUser string `binding:"Required"`
+	JenkinsHost string `binding:"Required"`
 	Webhook
 }
 
 func (f *NewPipelineHook) Validate(ctx *macaron.Context, errs binding.Errors) binding.Errors {
 	return validate(errs, ctx.Data, f, ctx.Locale)
 }
-
-//"number" : {
-//"type" : "integer"
-//},
-//"result" : {
-//"type": "string"
-//},
-//"timeInMillis" : {
-//"type": "long"
-//},
-//"startTimeInMillis" : {
-//"type": "long"
-//},
-//"description" : {
-//"type": "string"
-//},
-//"displayName" : {
-//"type": "string"
-//},
-//"repositoryID" :{
-//"type" : "integer"
-//}
 
 type PipelineCallback struct {
 	Number            int64  `json:"number"`

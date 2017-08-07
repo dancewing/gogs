@@ -112,7 +112,7 @@ type Job struct {
 	Environment    string
 	DeliveryUUID   string
 	HookTaskID     int64
-	HookTask       *PipelineHookTask `xorm:"-"`
+////	HookTask       *PipelineHookTask `xorm:"-"`
 
 	JobURL string `xorm:"TEXT"`
 
@@ -147,7 +147,7 @@ func (p *Job) loadAttributes(e Engine) (err error) {
 	}
 
 	if p.HookTaskID > 0 {
-		p.HookTask, err = GetPipelineHookTask(p.HookTaskID)
+//		p.HookTask, err = GetPipelineHookTask(p.HookTaskID)
 	}
 
 	return nil

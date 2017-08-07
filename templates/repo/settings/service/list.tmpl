@@ -1,0 +1,27 @@
+<div class="twelve wide column content">
+	{{template "base/alert" .}}
+	<h4 class="ui top attached header">
+		{{.i18n.Tr "repo.settings.hooks"}}
+
+	</h4>
+	<div class="ui attached table segment">
+		<div class="ui hook list">
+			<div class="item">
+				ssssssss
+			</div>
+			{{range .Services}}
+				<div class="item">
+					{{if .IsActive}}
+						<span class="text green"><i class="octicon octicon-check"></i></span>
+					{{else}}
+						<span class="text grey"><i class="octicon octicon-primitive-dot"></i></span>
+					{{end}}
+					{{.Name}}
+					<div class="ui right">
+						<span class="text blue"><a href="{{$.BaseLink}}/settings/services/{{.Name}}"><i class="fa fa-pencil"></i></a></span>
+					</div>
+				</div>
+			{{end}}
+		</div>
+	</div>
+</div>

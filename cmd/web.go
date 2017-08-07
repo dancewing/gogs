@@ -459,7 +459,18 @@ func runWeb(c *cli.Context) error {
 						Post(repo.SettingsGitHooksEditPost)
 				}, context.GitHookService())
 
-				m.Combo("/pipeline").Get(repo.PipelineHooksEdit).Post(bindIgnErr(form.NewWebhook{}), repo.PipelineHooksEditPost)
+			})
+
+			m.Group("/services", func() {
+				m.Get("", repo.Services)
+				m.Get("/:type", repo.ServicesEdit)
+				m.Post("/jenkins/edit", bindIgnErr(models.JenkinsServiceConfigLoad{}), repo.ServicesJenkinsPost, repo.ServicesPost)
+
+				m.Group("/:id", func() {
+					m.Get("", repo.WebHooksEdit)
+					m.Post("/test", repo.TestWebhook)
+					m.Post("/redelivery", repo.RedeliveryWebhook)
+				})
 			})
 
 			m.Group("/keys", func() {
