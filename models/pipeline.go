@@ -9,6 +9,7 @@ import (
 	"github.com/go-xorm/xorm"
 	git "github.com/gogits/git-module"
 	"github.com/gogits/gogs/pkg/pipeline"
+	"github.com/kataras/iris/core/errors"
 	log "gopkg.in/clog.v1"
 )
 
@@ -45,10 +46,12 @@ type Pipeline struct {
 	ID           int64
 	OwnerID      int64
 	Owner        *User `xorm:"-"`
-	Status       int
+	Status       string
 	RepositoryID int64
 	Repository   *Repository `xorm:"-"`
 	Jobs         []*Job      `xorm:"-"`
+
+	DeliveryUUID string
 
 	Created     time.Time `xorm:"-"`
 	CreatedUnix int64
@@ -97,22 +100,14 @@ type JobOptions struct {
 }
 
 type Job struct {
-	ID             int64
-	JobName        string
-	NextJobName    string
-	JenkinsJobName string
-	Branch         string
-	Commit         string
-	PipelineID     int64
-	Pipeline       *Pipeline `xorm:"-"`
-	RepositoryID   int64
-	Repository     *Repository `xorm:"-"`
-	Status         int
-	Stage          string
-	Environment    string
-	DeliveryUUID   string
-	HookTaskID     int64
-////	HookTask       *PipelineHookTask `xorm:"-"`
+	ID int64
+
+	PipelineID int64
+	Pipeline   *Pipeline `xorm:"-"`
+
+	Status      string
+	Stage       string
+	Environment string
 
 	JobURL string `xorm:"TEXT"`
 
@@ -140,37 +135,6 @@ func (p *Job) BeforeUpdate() {
 	p.UpdatedUnix = time.Now().Unix()
 }
 
-func (p *Job) loadAttributes(e Engine) (err error) {
-
-	if p.RepositoryID > 0 {
-		p.Repository, err = GetRepositoryByID(p.RepositoryID)
-	}
-
-	if p.HookTaskID > 0 {
-//		p.HookTask, err = GetPipelineHookTask(p.HookTaskID)
-	}
-
-	return nil
-}
-
-func (p *Job) LoadAttributes() error {
-	return p.loadAttributes(x)
-}
-
-func (p *Job) FindNextJob() (*Job, error) {
-	m := &Job{
-		PipelineID: p.PipelineID,
-		JobName:    p.NextJobName,
-	}
-	has, err := x.Get(m)
-	if err != nil {
-		return nil, err
-	} else if !has {
-		return nil, ErrJobNotExist{ID: p.ID, TaskID: 0}
-	}
-	return m, nil
-}
-
 func CountPipeline(repositoryID int64) int64 {
 	sess := x.Where("id > 0")
 
@@ -190,6 +154,24 @@ func CountJob(repositoryID int64) int64 {
 
 	if repositoryID > 0 {
 		sess.And("repository_id = ?", repositoryID)
+	}
+
+	count, err := sess.Count(new(Job))
+	if err != nil {
+		log.Error(4, "CountJob: %v", err)
+	}
+	return count
+}
+
+func CountJobByStatus(pipelineID int64, status string) int64 {
+	sess := x.Where("id > 0")
+
+	if pipelineID > 0 {
+		sess.And("pipeline_id = ?", pipelineID)
+	}
+
+	if status != "" {
+		sess.And("status = ?", status)
 	}
 
 	count, err := sess.Count(new(Job))
@@ -225,8 +207,25 @@ func getPipelineByID(e Engine, pipelineID int64) (*Pipeline, error) {
 	return m, nil
 }
 
+func getPipelineByDeliveryID(e Engine, deliveryID string) (*Pipeline, error) {
+	m := &Pipeline{
+		DeliveryUUID: deliveryID,
+	}
+	has, err := e.Get(m)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, errors.New(fmt.Sprintf("Pipeline not exist with deliveryID- %s", deliveryID))
+	}
+	return m, nil
+}
+
 func GetPipeline(pipelineID int64) (*Pipeline, error) {
 	return getPipelineByID(x, pipelineID)
+}
+
+func GetPipelineByDeliveryID(deliveryID string) (*Pipeline, error) {
+	return getPipelineByDeliveryID(x, deliveryID)
 }
 
 func ListJobs(opts *JobOptions) ([]*Job, error) {
@@ -251,6 +250,24 @@ func GetJob(jobID int64) (*Job, error) {
 	return getJobByID(x, jobID)
 }
 
+func GetJobByStep(step string, pipelineID int64) (*Job, error) {
+	return getJobByStep(x, step, pipelineID)
+}
+
+func getJobByStep(e Engine, step string, pipelineID int64) (*Job, error) {
+	m := &Job{
+		PipelineID: pipelineID,
+		Stage:      step,
+	}
+	has, err := e.Get(m)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, errors.New(fmt.Sprintf("Job not exist with pipelineID - %d, stage : %s ", pipelineID, step))
+	}
+	return m, nil
+}
+
 func getJobByID(e Engine, jobID int64) (*Job, error) {
 	m := &Job{
 		ID: jobID,
@@ -264,22 +281,9 @@ func getJobByID(e Engine, jobID int64) (*Job, error) {
 	return m, nil
 }
 
-func UpdateJob(job *Job) (error) {
+func UpdateJob(job *Job) error {
 	_, err := x.Id(job.ID).AllCols().Update(job)
 	return err
-}
-
-func GetJobByTask(taskID int64) (*Job, error) {
-	m := &Job{
-		HookTaskID: taskID,
-	}
-	has, err := x.Get(m)
-	if err != nil {
-		return nil, err
-	} else if !has {
-		return nil, ErrJobNotExist{ID: 0, TaskID: taskID}
-	}
-	return m, nil
 }
 
 func GetCIFileFromGit(owner *User, repository *Repository) (*pipeline.JobDefinition, error) {
@@ -308,42 +312,45 @@ func GetCIFileFromGit(owner *User, repository *Repository) (*pipeline.JobDefinit
 	return pipeline.Parse([]byte(data))
 }
 
-func CreatePipeline(e Engine, def *pipeline.JobDefinition, repo *Repository) (*Job, error) {
+func CreatePipeline(pipeline *Pipeline) (*Pipeline, error) {
 
-	pipeline := Pipeline{
-		Status:       0,
-		RepositoryID: repo.ID,
-	}
-	_, err := e.Insert(&pipeline)
+	_, err := x.Insert(pipeline)
 	if err != nil {
-		return nil, fmt.Errorf("Error GetCIFileFromGit: %v", err)
+		return nil, fmt.Errorf("Error CreatePipeline: %v", err)
+	}
+	return pipeline, nil
+}
+
+func CreateJob(job *Job) (*Job, error) {
+
+	_, err := x.Insert(job)
+	if err != nil {
+		return nil, fmt.Errorf("Error CreateJob: %v", err)
+	}
+	return job, nil
+}
+
+func UpdatePipelineStatus(pipeline *Pipeline) (*Pipeline, error) {
+
+	all :=  CountJobByStatus(pipeline.ID, "")
+	success := CountJobByStatus(pipeline.ID, "success")
+	failed := CountJobByStatus(pipeline.ID, "failed")
+	canceled := CountJobByStatus(pipeline.ID, "canceled")
+
+	if all == success {
+		pipeline.Status = "success"
+	}
+	if failed >= 1 {
+		pipeline.Status = "failed"
 	}
 
-	var firstJob *Job
-	for index := 0; index < len(def.Pipeline.Jobs); index++ {
-		j := def.Pipeline.Jobs[index]
-
-		job := Job{
-			JobName:        j.JobName,
-			PipelineID:     pipeline.ID,
-			Status:         0,
-			Stage:          j.Stage,
-			Environment:    j.Environment,
-			RepositoryID:   repo.ID,
-			NextJobName:    j.NextJobName,
-			JenkinsJobName: j.JenkinsJob,
-			JobURL:         def.GetJobURL(j),
-		}
-
-		_, err = e.Insert(&job)
-		if err != nil {
-			return nil, fmt.Errorf("Error GetCIFileFromGit: %v", err)
-		}
-		if index == 0 {
-			firstJob = &job
-		}
+	if canceled >=1 {
+		pipeline.Status = "canceled"
 	}
 
-	return firstJob, nil
-
+	_, err := x.ID(pipeline.ID).Cols("status").Update(pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("Error UpdatePipeline: %v", err)
+	}
+	return pipeline, nil
 }

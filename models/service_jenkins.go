@@ -15,9 +15,10 @@ import (
 )
 
 type JenkinsServiceConfigLoad struct {
-	JenkinsHost  string `json:"jenkins_host"`
-	JenkinsUser  string `json:"jenkins_user"`
-	JenkinsToken string `json:"jenkins_token"`
+	JenkinsHost    string `json:"jenkins_host"`
+	JenkinsUser    string `json:"jenkins_user"`
+	JenkinsToken   string `json:"jenkins_token"`
+	JenkinsProject string `json:"jenkins_project"`
 	*ServiceConfigLoad
 }
 
@@ -25,18 +26,20 @@ func (load *JenkinsServiceConfigLoad) Deliver(t *ServiceTask) error {
 
 	t.IsDelivered = true
 
-	t.URL = load.JenkinsHost
+	t.URL = load.JenkinsHost + "gogs-webhook/?job=" + load.JenkinsProject
 
 	timeout := time.Duration(setting.Webhook.DeliverTimeout) * time.Second
 
+	var callBackURL = "http://localhost:3000/api/v4/repos/kuwago/jhipster-showcase/pipeline"
+
 	req := httplib.Post(t.URL).SetTimeout(timeout, timeout).
 		Header("X-Gogs-Delivery", t.UUID).
-		Header("X-Gogs-Signature", t.Signature).
+		//Header("X-Gogs-Signature", t.Signature).
 		Header("X-Gogs-Event", string(t.EventType)).
+		Header("X-Gogs-Callback", string(callBackURL)).
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: setting.Webhook.SkipTLSVerify})
 
 	//Header("X-Gogs-Callback", string(t.CallbackURL)).
-
 
 	req = req.Header("Content-Type", "application/json").Body(t.PayloadContent)
 

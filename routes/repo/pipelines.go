@@ -136,14 +136,14 @@ func ListJobs(c *context.Context) {
 		return
 	}
 
-	for _, job := range jobs {
-		err = job.LoadAttributes()
-
-		if err != nil {
-			c.Handle(500, "ListPipelines.LoadAttributes", err)
-			return
-		}
-	}
+	//for _, job := range jobs {
+	//	//		err = job.LoadAttributes()
+	//
+	//	if err != nil {
+	//		c.Handle(500, "ListPipelines.LoadAttributes", err)
+	//		return
+	//	}
+	//}
 
 	c.Data["Jobs"] = jobs
 
@@ -165,8 +165,6 @@ func ViewJob(c *context.Context) {
 		c.Handle(500, "ViewJob.GetPipeline", err)
 		return
 	}
-
-	err = job.LoadAttributes()
 
 	if err != nil {
 		c.Handle(500, "ViewPipeline.LoadAttributes", err)

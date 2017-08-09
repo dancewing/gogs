@@ -7,8 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"gitlab.com/gitlab-org/gitlab-ci-multi-runner/common"
 )
 
 var testFile1 = `
@@ -77,7 +75,7 @@ func prepareTestFile(t *testing.T, fileContent string) string {
 	return file.Name()
 }
 
-func getJobResponse(t *testing.T, fileContent, jobName string, expectingError bool) *common.JobResponse {
+func getJobResponse(t *testing.T, fileContent, jobName string, expectingError bool) *JobResponse {
 	file := prepareTestFile(t, fileContent)
 	defer os.Remove(file)
 
@@ -86,7 +84,7 @@ func getJobResponse(t *testing.T, fileContent, jobName string, expectingError bo
 		jobName:  jobName,
 	}
 
-	jobResponse := &common.JobResponse{}
+	jobResponse := &JobResponse{}
 	err := parser.ParseYaml(jobResponse)
 	if expectingError {
 		assert.Error(t, err)

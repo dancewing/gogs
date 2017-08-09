@@ -25,4 +25,6 @@ type PipelineCallback struct {
 	Description       string `json:"description"`
 	DisplayName       string `json:"displayName"`
 	DeliveryID        string `json:"deliveryID"`
+	State             string `json:"state"`
+	Step              string `json:"step"`
 }

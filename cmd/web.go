@@ -40,6 +40,7 @@ import (
 	"github.com/gogits/gogs/routes/admin"
 	apiboard "github.com/gogits/gogs/routes/api/board"
 	apiv1 "github.com/gogits/gogs/routes/api/v1"
+	apiv4 "github.com/gogits/gogs/routes/api/v4"
 	//	"github.com/gogits/gogs/routes/dev"
 	"github.com/go-macaron/sockets"
 	"github.com/gogits/gogs/pkg/ws"
@@ -709,6 +710,7 @@ func runWeb(c *cli.Context) error {
 
 	m.Group("/api", func() {
 		apiv1.RegisterRoutes(m)
+		apiv4.RegisterRoutes(m)
 		apiboard.RegisterBoardRoutes(m)
 	})
 

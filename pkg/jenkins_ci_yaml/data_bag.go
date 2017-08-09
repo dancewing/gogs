@@ -1,4 +1,4 @@
-package pipeline
+package jenkins_ci_yaml
 
 import (
 	"encoding/json"
