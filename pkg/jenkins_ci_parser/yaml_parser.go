@@ -1,4 +1,4 @@
-package jenkins_ci_yaml
+package jenkins_ci_parser
 
 import (
 	"errors"
@@ -91,9 +91,11 @@ func (c *JenkinsCiYamlParser) preparePipelineStages(pipeline *Pipeline) (err err
 		pipeline.Stages = make([]Stage, 0)
 		for _, i := range stages {
 			s, err := c.getStage(i)
-			if err == nil {
-				pipeline.Stages = append(pipeline.Stages, s)
+			if err != nil {
+				return err
 			}
+
+			pipeline.Stages = append(pipeline.Stages, s)
 
 		}
 	}
@@ -114,7 +116,7 @@ func (c *JenkinsCiYamlParser) getStage(commands interface{}) (Stage, error) {
 		if val, ok := command["steps"]; ok {
 			steps, err = c.getCommands(val)
 			if err != nil {
-				return Stage{}, errors.New("Can't get step scripts ")
+				return Stage{}, err
 			}
 		}
 		if name != "" && len(steps) > 0 {
@@ -127,7 +129,7 @@ func (c *JenkinsCiYamlParser) getStage(commands interface{}) (Stage, error) {
 				pairs, err := c.getKeyValuePairs(val)
 
 				if err != nil {
-					return Stage{}, errors.New("Can't get step scripts ")
+					return Stage{}, err
 				}
 				var whens Whens
 				for _, w := range pairs {

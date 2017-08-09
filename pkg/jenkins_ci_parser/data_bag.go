@@ -1,4 +1,4 @@
-package jenkins_ci_yaml
+package jenkins_ci_parser
 
 import (
 	"encoding/json"
