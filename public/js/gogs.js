@@ -507,6 +507,16 @@ function initRepository() {
         });
     }
 
+	//run pipeline form
+
+	if ($('#run-pipeline-form').length>0){
+		var $statusButton = $('#status-button');
+		$statusButton.click(function () {
+			$('#status').val($statusButton.data('status-val'));
+			$('#run-pipeline-form').submit();
+		});
+	}
+
     // Diff
     if ($('.repository.diff').length > 0) {
         var $counter = $('.diff-counter');

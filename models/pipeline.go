@@ -8,12 +8,14 @@ import (
 
 	"github.com/go-xorm/xorm"
 	git "github.com/gogits/git-module"
-	"github.com/gogits/gogs/pkg/pipeline"
+	api "github.com/gogits/go-gogs-client"
+	"github.com/gogits/gogs/pkg/jenkins_ci_parser"
 	"github.com/kataras/iris/core/errors"
 	log "gopkg.in/clog.v1"
 )
 
-const JENKINS_CI_FILE = ".jenkins-ci.yml"
+const JENKINS_CI_YAML = ".jenkins-ci.yml"
+const JENKINS_CI_JSON = ".jenkins-ci.json"
 
 type ErrPipelineNotExist struct {
 	ID int64
@@ -51,7 +53,10 @@ type Pipeline struct {
 	Repository   *Repository `xorm:"-"`
 	Jobs         []*Job      `xorm:"-"`
 
-	DeliveryUUID string
+	JenkinsJobName string
+	DeliveryUUID   string
+
+	ExecuteLog string
 
 	Created     time.Time `xorm:"-"`
 	CreatedUnix int64
@@ -102,8 +107,9 @@ type JobOptions struct {
 type Job struct {
 	ID int64
 
-	PipelineID int64
-	Pipeline   *Pipeline `xorm:"-"`
+	PipelineID   int64
+	Pipeline     *Pipeline `xorm:"-"`
+	RepositoryID int64
 
 	Status      string
 	Stage       string
@@ -184,7 +190,6 @@ func CountJobByStatus(pipelineID int64, status string) int64 {
 // GetUserRepositories returns a list of repositories of given user.
 func ListPipelines(opts *PipelineOptions) ([]*Pipeline, error) {
 	sess := x.Where("repository_id=?", opts.RepositoryID).Desc("created_unix")
-
 	if opts.Page <= 0 {
 		opts.Page = 1
 	}
@@ -286,30 +291,44 @@ func UpdateJob(job *Job) error {
 	return err
 }
 
-func GetCIFileFromGit(owner *User, repository *Repository) (*pipeline.JobDefinition, error) {
-	repoPath := RepoPath(owner.Name, repository.Name)
+func GetCIFileFromGit(repository *Repository, branch string, fileType string) (string, error) {
+	repoPath := RepoPath(repository.Owner.Name, repository.Name)
 	repo, err := git.OpenRepository(repoPath)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	commit, err := repo.GetBranchCommit(repository.DefaultBranch)
-	if err != nil {
-		return nil, err
+	var br string
+	if branch == "" {
+		br = repository.DefaultBranch
+	} else {
+		br = branch
 	}
-	treeEntry, err := commit.GetTreeEntryByPath(JENKINS_CI_FILE)
+	commit, err := repo.GetBranchCommit(br)
 	if err != nil {
-		return nil, err
+		return "", err
+	}
+
+	var fileName string
+	if fileType == "yaml" {
+		fileName = JENKINS_CI_YAML
+	} else {
+		fileName = JENKINS_CI_JSON
+	}
+
+	treeEntry, err := commit.GetTreeEntryByPath(fileName)
+	if err != nil {
+		return "", err
 	}
 	reader, err := treeEntry.Blob().Data()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return pipeline.Parse([]byte(data))
+	return string(data), nil
 }
 
 func CreatePipeline(pipeline *Pipeline) (*Pipeline, error) {
@@ -332,7 +351,7 @@ func CreateJob(job *Job) (*Job, error) {
 
 func UpdatePipelineStatus(pipeline *Pipeline) (*Pipeline, error) {
 
-	all :=  CountJobByStatus(pipeline.ID, "")
+	all := CountJobByStatus(pipeline.ID, "")
 	success := CountJobByStatus(pipeline.ID, "success")
 	failed := CountJobByStatus(pipeline.ID, "failed")
 	canceled := CountJobByStatus(pipeline.ID, "canceled")
@@ -344,7 +363,7 @@ func UpdatePipelineStatus(pipeline *Pipeline) (*Pipeline, error) {
 		pipeline.Status = "failed"
 	}
 
-	if canceled >=1 {
+	if canceled >= 1 {
 		pipeline.Status = "canceled"
 	}
 
@@ -353,4 +372,147 @@ func UpdatePipelineStatus(pipeline *Pipeline) (*Pipeline, error) {
 		return nil, fmt.Errorf("Error UpdatePipeline: %v", err)
 	}
 	return pipeline, nil
+}
+
+func PreviewPipelineScript(repository *Repository, branch string) (string, error) {
+	config, err := GetConfiguration(JENKINS, repository.ID)
+
+	if err != nil {
+		return "", err
+	}
+
+	if !config.IsActive {
+		return "", errors.New("Jenkins Config is not active")
+	}
+
+	jenkinsCfg := config.ToJenkinsServiceConfigEdit()
+
+	var content string
+	if jenkinsCfg.JenkinsFileType == "yaml" {
+		content, err = GetCIFileFromGit(repository, branch, "yaml")
+
+		if err != nil {
+			return "", err
+		}
+
+		parser := jenkins_ci_parser.NewGitLabCiYamlParser([]byte(content))
+
+		ci, err := parser.ParseYaml()
+
+		if err != nil {
+			return "", err
+		}
+
+		writer := jenkins_ci_parser.NewPipelineWriter()
+
+		p := ci.Pipeline.FilterStages(branch, ci.DefaultEnvironment().Name)
+
+		p.Writer(writer)
+
+		return writer.String(), nil
+
+	} else {
+
+	}
+
+	return "", nil
+
+}
+
+func RunPipeline(repository *Repository, branch string, payload api.Payloader) error {
+	config, err := GetConfiguration(JENKINS, repository.ID)
+
+	if err != nil {
+		return err
+	}
+
+	if !config.IsActive {
+		return errors.New("Jenkins Config is not active")
+	}
+
+	jenkinsCfg := config.ToJenkinsServiceConfigEdit()
+
+	var content string
+	if jenkinsCfg.JenkinsFileType == "yaml" {
+		content, err = GetCIFileFromGit(repository, branch, "yaml")
+
+		if err != nil {
+			return err
+		}
+
+		parser := jenkins_ci_parser.NewGitLabCiYamlParser([]byte(content))
+
+		ci, err := parser.ParseYaml()
+
+		if err != nil {
+			return err
+		}
+
+		writer := jenkins_ci_parser.NewPipelineWriter()
+
+		p := ci.Pipeline.FilterStages(branch, ci.DefaultEnvironment().Name)
+
+		p.Writer(writer)
+
+		//Generate Job
+		jobName := "showcase-build"
+
+		//Check Remote Job by Jenkins Client
+		task, err := runServiceTask(repository, payload, config, jobName)
+
+		if err != nil {
+			return err
+		}
+
+		pipeline := &Pipeline{
+			Status:         "running",
+			RepositoryID:   repository.ID,
+			DeliveryUUID:   task.UUID,
+			JenkinsJobName: jobName,
+		}
+
+		_, err = CreatePipeline(pipeline)
+
+		if err != nil {
+			return err
+		}
+
+		for _, stage := range p.Stages {
+			job := &Job{
+				PipelineID: pipeline.ID,
+				Stage:      stage.Name,
+				RepositoryID: pipeline.RepositoryID,
+			}
+			_, err = CreateJob(job)
+			if err != nil {
+				return err
+			}
+		}
+
+	} else {
+
+	}
+
+	return nil
+}
+
+func GetLastCommit(repository *Repository, branch string) (*git.Commit, error) {
+	repoPath := RepoPath(repository.Owner.Name, repository.Name)
+	repo, err := git.OpenRepository(repoPath)
+
+	if err != nil {
+		return nil, err
+	}
+	var br string
+	if branch == "" {
+		br = repository.DefaultBranch
+	} else {
+		br = branch
+	}
+	commit, err := repo.GetBranchCommit(br)
+
+	if err != nil {
+		return nil, err
+	}
+	return commit, nil
 }

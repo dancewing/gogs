@@ -226,6 +226,7 @@ type ServiceTask struct {
 	Signature      string `xorm:"TEXT"`
 	api.Payloader  `xorm:"-"`
 	PayloadContent string `xorm:"TEXT"`
+	JenkinsJobName string
 
 	EventType   HookEventType
 	ServiceType ServiceType
@@ -395,6 +396,31 @@ func prepareServiceTasks(e Engine, repo *Repository, event HookEventType, p api.
 	// consume this input during hook execution.
 	go ServiceQueue.Add(repo.ID)
 	return nil
+}
+
+//runServiceTask by manually
+func runServiceTask(repo *Repository, payloader api.Payloader, w *ServiceConfig, jobName string) (task *ServiceTask, err error) {
+
+	task = &ServiceTask{
+		RepoID:         repo.ID,
+		ConfigID:       w.ID,
+		Payloader:      payloader,
+		EventType:      HOOK_EVENT_PUSH,
+		ServiceType:    w.Type,
+		JenkinsJobName: jobName,
+	}
+
+	if err = createServiceTask(x, task); err != nil {
+		return nil, fmt.Errorf("createHookTask: %v", err)
+	}
+
+	go ServiceQueue.Add(repo.ID)
+
+	// It's safe to fail when the whole function is called during hook execution
+	// because resource released after exit. Also, there is no process started to
+	// consume this input during hook execution.
+
+	return task, nil
 }
 
 func createServiceTask(e Engine, t *ServiceTask) error {

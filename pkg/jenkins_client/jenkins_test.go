@@ -8,7 +8,11 @@ import (
 
 func NewJenkinsWithTestData() *Jenkins {
 	var auth Auth
-	return NewJenkins(&auth, "http://example.com")
+	auth = Auth{
+		Username: "admin",
+		ApiToken: "4f74a2b22446a37bb64b959edbb3397f",
+	}
+	return NewDebugJenkins(&auth, "http://localhost:9090")
 }
 
 func Test(t *testing.T) {
@@ -22,6 +26,8 @@ func Test(t *testing.T) {
 	if len(jobs) == 0 {
 		t.Errorf("return no jobs\n")
 	}
+
+	fmt.Printf("%v", jobs)
 }
 
 func TestAddJobToView(t *testing.T) {
@@ -64,37 +70,46 @@ func TestCreateView(t *testing.T) {
 }
 
 func TestCreateJobItem(t *testing.T) {
+
 	jenkins := NewJenkinsWithTestData()
-	scm := Scm{
-		ScmContent: ScmSvn{
-			Locations: Locations{
-				[]ScmSvnLocation{
-					ScmSvnLocation{IgnoreExternalsOption: "false", DepthOption: "infinity", Local: ".", Remote: "http://some-svn-url"},
-				},
-			},
-			IgnoreDirPropChanges: "false",
-			FilterChangelog:      "false",
-			WorkspaceUpdater:     WorkspaceUpdater{Class: "hudson.scm.subversion.UpdateUpdater"},
-		},
-		Class:  "hudson.scm.SubversionSCM",
-		Plugin: "subversion@1.54",
+
+	//properties := []JobProperty{
+	//	PipelineTriggersJobProperty{
+	//
+	//	}
+	//}
+
+	plugins, err := jenkins.GetPlugins()
+
+	if err != nil {
+		t.Errorf("error %v\n", err)
 	}
-	triggers := Triggers{[]Trigger{ScmTrigger{}}}
-	postStep := RunPostStepsIfResult{Name: "FAILURE", Ordinal: "2", Color: "RED", CompleteBuild: "true"}
-	settings := JobSettings{Class: "jenkins.mvn.DefaultSettingsProvider"}
-	globalSettings := JobSettings{Class: "jenkins.mvn.DefaultSettingsProvider"}
-	jobItem := MavenJobItem{
-		Plugin:               "maven-plugin@2.7.1",
-		Description:          "test description",
-		Scm:                  scm,
-		Triggers:             triggers,
-		RunPostStepsIfResult: postStep,
-		Settings:             settings,
-		GlobalSettings:       globalSettings,
+
+	workflow_job, err := plugins.GetVersion("workflow-job")
+	if err != nil {
+		t.Errorf("error %v\n", err)
+	}
+
+	workflow_cps, err := plugins.GetVersion("workflow-cps")
+
+	if err != nil {
+		t.Errorf("error %v\n", err)
+	}
+
+	jobItem := WorkflowJobItem{
+		Plugin:           "workflow-job@" + workflow_job,
+		KeepDependencies: "false",
+		//Properties:       properties,
+		Disabled: "false",
+		Definition: CpsFlowDefinition{
+			Class:   "org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition",
+			Plugin:  "workflow-cps@" + workflow_cps,
+			Sandbox: true,
+		},
 	}
 
 	newJobName := fmt.Sprintf("test-%d", time.Now().UnixNano())
-	err := jenkins.CreateJob(jobItem, newJobName)
+	err = jenkins.CreateJob(jobItem, newJobName)
 
 	if err != nil {
 		t.Errorf("error %v\n", err)

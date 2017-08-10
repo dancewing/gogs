@@ -505,7 +505,7 @@ func runWeb(c *cli.Context) error {
 		m.Group("/pipelines", func() {
 			m.Get("", repo.ListPipelines)
 			m.Get("/:id", repo.ViewPipeline)
-			m.Combo("/new").Get(repo.NewPipeline).Post(repo.NewPipelinePost)
+			m.Combo("/new").Get(repo.NewPipeline).Post(bindIgnErr(form.NewPipeline{}), repo.NewPipelinePost)
 			m.Get("/jobs", repo.ListJobs)
 
 		}, repo.RetrievePipeline)

@@ -1,0 +1,51 @@
+{{template "base/head" .}}
+<div class="repository file list">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div class="navbar">
+			{{template "repo/pipeline/navbar" .}}
+		</div>
+
+		<div class="ui divider"></div>
+
+		{{template "base/alert" .}}
+
+
+		<div id="file-content" class="tab-size-4">
+			<form class="" action="{{.Link}}" id="run-pipeline-form" method="post">
+				{{.CSRFTokenHTML}}
+				<div class="ui attached table segment">
+
+					<div class="file-view code-view has-emoji" >
+
+						<table>
+							<tbody>
+							<tr>
+								<td class="lines-num">{{.LineNums}}</td>
+								<td class="lines-code"><pre><code class="{{.HighlightClass}}"><ol class="linenums">{{.FileContent}}</ol></code></pre></td>
+							</tr>
+							</tbody>
+						</table>
+
+					</div>
+
+					<div class="ui divider"></div>
+
+					<div class="field">
+						<button class="ui red button">
+							Run
+						</button>
+						<a class="ui green basic button" href="{{.RepoLink}}/pipelines">
+							Cancel
+						</a>
+					</div>
+				</div>
+			</form>
+
+		</div>
+	</div>
+
+
+
+</div>
+{{template "base/footer" .}}

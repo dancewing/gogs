@@ -9,8 +9,9 @@
 		<div class="ui divider"></div>
 
 		{{template "base/alert" .}}
-		<form class="ui form grid" action="{{.Link}}" method="post">
+		<form class="ui form grid" action="{{.Link}}" id="run-pipeline-form" method="post">
 			{{.CSRFTokenHTML}}
+			<input id="status" name="status" type="hidden">
 			<div class="eleven wide column">
 				<div class="field {{if .Err_Title}}error{{end}}">
 					<label>Create for</label>
@@ -28,16 +29,14 @@
 						</div>
 					</div>
 				</div>
-			</div>
-			<div class="ui container">
-				<div class="ui divider"></div>
-				<div class="ui">
-					<button class="ui green button">
-							Create Pipeline
+				<div class="field">
+					<button class="ui red button">
+						Run
 					</button>
-				</div>
-				<div class="ui right">
-					<a class="ui blue basic button" href="{{.RepoLink}}/pipelines">
+					<div id="status-button" class="ui green button" tabindex="6" data-status="preview" data-status-and-comment="Preview the pipeline" data-status-val="preview">
+						Preview
+					</div>
+					<a class="ui green basic button" href="{{.RepoLink}}/pipelines">
 						Cancel
 					</a>
 				</div>

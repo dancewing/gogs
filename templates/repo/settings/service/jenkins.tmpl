@@ -9,12 +9,18 @@
 		</div>
 	</div>
 	<div class="field">
-		<div class="required field {{if .Err_PayloadURL}}error{{end}}">
-			<label for="project">Jenkins project</label>
-			<input id="project" name="jenkins_project" type="text" value="{{.ServiceConfig.JenkinsProject}}" required>
+		<label>Config File Type</label>
+		<div class="ui selection dropdown">
+			<input type="hidden" id="content_type" name="jenkins_file_type" value="{{if .ServiceConfig.JenkinsFileType}}{{.ServiceConfig.JenkinsFileType}}{{else}}yaml{{end}}">
+			<div class="default text"></div>
+			<i class="dropdown icon"></i>
+			<div class="menu">
+				<div class="item" data-value="yaml">yaml</div>
+				<div class="item" data-value="json">json</div>
+			</div>
 		</div>
 	</div>
-	<div class="field {{if .Err_Secret}}error{{end}}">
+	<div class="field {{if .Err_JenkinsUser}}error{{end}}">
 		<label for="jenkins_user">Jenkins User</label>
 		<input id="jenkins_user" name="jenkins_user" type="text" value="{{.ServiceConfig.JenkinsUser}}" autocomplete="off">
 	</div>

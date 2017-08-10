@@ -121,6 +121,58 @@ type MavenJobItem struct {
 	Postbuilders                     PostBuilders         `xml:"postbuilders"`
 }
 
+type WorkflowJobItem struct {
+	XMLName          struct{}      `xml:"flow-definition"`
+	Plugin           string        `xml:"plugin,attr"`
+	Description      string        `xml:"description"`
+	KeepDependencies string        `xml:"keepDependencies"`
+	Properties       JobProperties `xml:"properties"`
+	Triggers         Triggers      `xml:"triggers"`
+	Disabled         string        `xml:"disabled"`
+
+	Definition CpsFlowDefinition `xml:"definition"`
+
+	//Scm                              Scm    `xml:"scm"`
+	//CanRoam                          string `xml:"canRoam"`
+	//
+	//BlockBuildWhenDownstreamBuilding string `xml:"blockBuildWhenDownstreamBuilding"`
+	//BlockBuildWhenUpstreamBuilding   string `xml:"blockBuildWhenUpstreamBuilding"`
+	//
+	//ConcurrentBuild                  string               `xml:"concurrentBuild"`
+	//Goals                            string               `xml:"goals"`
+	//AggregatorStyleBuild             string               `xml:"aggregatorStyleBuild"`
+	//IncrementalBuild                 string               `xml:"incrementalBuild"`
+	//IgnoreUpstremChanges             string               `xml:"ignoreUpstremChanges"`
+	//ArchivingDisabled                string               `xml:"archivingDisabled"`
+	//SiteArchivingDisabled            string               `xml:"siteArchivingDisabled"`
+	//FingerprintingDisabled           string               `xml:"fingerprintingDisabled"`
+	//ResolveDependencies              string               `xml:"resolveDependencies"`
+	//ProcessPlugins                   string               `xml:"processPlugins"`
+	//MavenName                        string               `xml:"mavenName"`
+	//MavenValidationLevel             string               `xml:"mavenValidationLevel"`
+	//DefaultGoals                     string               `xml:"defaultGoals"`
+	//RunHeadless                      string               `xml:"runHeadless"`
+	//DisableTriggerDownstreamProjects string               `xml:"disableTriggerDownstreamProjects"`
+	//Settings                         JobSettings          `xml:"settings"`
+	//GlobalSettings                   JobSettings          `xml:"globalSettings"`
+	//RunPostStepsIfResult             RunPostStepsIfResult `xml:"runPostStepsIfResult"`
+	//Postbuilders                     PostBuilders         `xml:"postbuilders"`
+}
+
+type CpsFlowDefinition struct {
+	//XMLName struct{} `xml:"definition"`
+	Class   string `xml:"class,attr"`
+	Plugin  string `xml:"plugin,attr"`
+	Script  string `xml:"script"`
+	Sandbox bool   `xml:"sandbox"`
+}
+
+type PipelineTriggersJobProperty struct {
+	JobProperty
+	XMLName  struct{} `xml:"org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty"`
+	Triggers Triggers `xml:"triggers"`
+}
+
 type Scm struct {
 	ScmContent
 	Class  string `xml:"class,attr"`
@@ -175,8 +227,12 @@ type JobSettings struct {
 
 type JobSetting struct {
 }
-type JobProperties struct {
+
+type JobProperty struct {
 }
+
+type JobProperties []JobProperty
+
 type Triggers struct {
 	Trigger []Trigger
 }

@@ -15,10 +15,10 @@ import (
 )
 
 type JenkinsServiceConfigLoad struct {
-	JenkinsHost    string `json:"jenkins_host"`
-	JenkinsUser    string `json:"jenkins_user"`
-	JenkinsToken   string `json:"jenkins_token"`
-	JenkinsProject string `json:"jenkins_project"`
+	JenkinsHost     string `json:"jenkins_host"`
+	JenkinsUser     string `json:"jenkins_user"`
+	JenkinsToken    string `json:"jenkins_token"`
+	JenkinsFileType string `json:"jenkins_file_type"`
 	*ServiceConfigLoad
 }
 
@@ -26,7 +26,7 @@ func (load *JenkinsServiceConfigLoad) Deliver(t *ServiceTask) error {
 
 	t.IsDelivered = true
 
-	t.URL = load.JenkinsHost + "gogs-webhook/?job=" + load.JenkinsProject
+	t.URL = load.JenkinsHost + "gogs-webhook/?job=" + t.JenkinsJobName
 
 	timeout := time.Duration(setting.Webhook.DeliverTimeout) * time.Second
 

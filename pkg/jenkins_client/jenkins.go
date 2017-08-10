@@ -1,15 +1,15 @@
 package jenkins_client
 
 import (
-	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/gogits/gogs/pkg/httplib"
 )
 
 type Auth struct {
@@ -20,20 +20,22 @@ type Auth struct {
 type Jenkins struct {
 	auth    *Auth
 	baseUrl string
-	client  *http.Client
+	debug   bool
 }
 
 func NewJenkins(auth *Auth, baseUrl string) *Jenkins {
 	return &Jenkins{
 		auth:    auth,
 		baseUrl: baseUrl,
-		client:  http.DefaultClient,
 	}
 }
 
-// SetHTTPClient with timeouts or insecure transport, etc.
-func (jenkins *Jenkins) SetHTTPClient(client *http.Client) {
-	jenkins.client = client
+func NewDebugJenkins(auth *Auth, baseUrl string) *Jenkins {
+	return &Jenkins{
+		auth:    auth,
+		baseUrl: baseUrl,
+		debug:   true,
+	}
 }
 
 func (jenkins *Jenkins) buildUrl(path string, params url.Values) (requestUrl string) {
@@ -48,11 +50,11 @@ func (jenkins *Jenkins) buildUrl(path string, params url.Values) (requestUrl str
 	return
 }
 
-func (jenkins *Jenkins) sendRequest(req *http.Request) (*http.Response, error) {
+func (jenkins *Jenkins) addAuth(req *httplib.Request) *httplib.Request {
 	if jenkins.auth != nil {
 		req.SetBasicAuth(jenkins.auth.Username, jenkins.auth.ApiToken)
 	}
-	return jenkins.client.Do(req)
+	return req
 }
 
 func (jenkins *Jenkins) parseXmlResponse(resp *http.Response, body interface{}) (err error) {
@@ -85,42 +87,69 @@ func (jenkins *Jenkins) parseResponse(resp *http.Response, body interface{}) (er
 	return json.Unmarshal(data, body)
 }
 
-func (jenkins *Jenkins) get(path string, params url.Values, body interface{}) (err error) {
-	requestUrl := jenkins.buildUrl(path, params)
-	req, err := http.NewRequest("GET", requestUrl, nil)
-	if err != nil {
-		return
+type JenkinsCrumb struct {
+	Crumb             string `json:"crumb"`
+	CrumbRequestField string `json:"crumbRequestField"`
+}
+
+func (jenkins *Jenkins) AddCrumb(req *httplib.Request) *httplib.Request {
+	//Jenkins-Crumb:6cd95265af0c31275f403aa04c97c50a
+	var path = `/crumbIssuer/api/json`
+	requestUrl := jenkins.buildUrl(path, nil)
+
+	crumb := &JenkinsCrumb{}
+
+	err := jenkins.addAuth(httplib.Get(requestUrl)).ToJson(crumb)
+
+	if err == nil {
+		req.Header(crumb.CrumbRequestField, crumb.Crumb)
 	}
 
-	resp, err := jenkins.sendRequest(req)
-	if err != nil {
-		return
-	}
-	return jenkins.parseResponse(resp, body)
+	return req
+}
+
+func (jenkins *Jenkins) get(path string, params url.Values, body interface{}) (err error) {
+	requestUrl := jenkins.buildUrl(path, params)
+	//req, err := http.NewRequest("GET", requestUrl, nil)
+	//if err != nil {
+	//	return
+	//}
+	return jenkins.addAuth(httplib.Get(requestUrl)).Debug(jenkins.debug).ToJson(body)
+	//req := httplib.Get(requestUrl).ToJson(body)
+	//
+	//resp, err := jenkins.sendRequest(req)
+	//if err != nil {
+	//	return
+	//}
+	//return jenkins.parseResponse(resp, body)
 }
 
 func (jenkins *Jenkins) getXml(path string, params url.Values, body interface{}) (err error) {
 	requestUrl := jenkins.buildUrl(path, params)
-	req, err := http.NewRequest("GET", requestUrl, nil)
-	if err != nil {
-		return
-	}
+	//req, err := http.NewRequest("GET", requestUrl, nil)
+	//if err != nil {
+	//	return
+	//}
 
-	resp, err := jenkins.sendRequest(req)
-	if err != nil {
-		return
-	}
-	return jenkins.parseXmlResponse(resp, body)
+	return jenkins.addAuth(httplib.Get(requestUrl)).ToXml(body)
+	//
+	//resp, err := jenkins.sendRequest(req)
+	//if err != nil {
+	//	return
+	//}
+	//return jenkins.parseXmlResponse(resp, body)
 }
 
 func (jenkins *Jenkins) post(path string, params url.Values, body interface{}) (err error) {
 	requestUrl := jenkins.buildUrl(path, params)
-	req, err := http.NewRequest("POST", requestUrl, nil)
-	if err != nil {
-		return
-	}
+	//req, err := http.NewRequest("POST", requestUrl, nil)
+	//if err != nil {
+	//	return
+	//}
 
-	resp, err := jenkins.sendRequest(req)
+	resp, err := jenkins.addAuth(httplib.Post(requestUrl)).Response()
+
+	//resp, err := jenkins.sendRequest(req)
 	if err != nil {
 		return
 	}
@@ -128,9 +157,10 @@ func (jenkins *Jenkins) post(path string, params url.Values, body interface{}) (
 		return errors.New(fmt.Sprintf("error: HTTP POST returned status code %d (expected 2xx)", resp.StatusCode))
 	}
 
-	return jenkins.parseResponse(resp, body)
+	//return resp.
+	return jenkins.parseResponse(resp, resp.Body)
 }
-func (jenkins *Jenkins) postXml(path string, params url.Values, xmlBody io.Reader, body interface{}) (err error) {
+func (jenkins *Jenkins) postXml(path string, params url.Values, xmlBody []byte, body interface{}) (err error) {
 	requestUrl := jenkins.baseUrl + path
 	if params != nil {
 		queryString := params.Encode()
@@ -138,17 +168,17 @@ func (jenkins *Jenkins) postXml(path string, params url.Values, xmlBody io.Reade
 			requestUrl = requestUrl + "?" + queryString
 		}
 	}
-
-	req, err := http.NewRequest("POST", requestUrl, xmlBody)
+	resp, err := jenkins.AddCrumb(jenkins.addAuth(httplib.Post(requestUrl)).Header("Content-Type", "application/xml").Debug(jenkins.debug)).Body(xmlBody).Response()
+	// req, err := http.NewRequest("POST", requestUrl, xmlBody)
 	if err != nil {
 		return
 	}
 
-	req.Header.Add("Content-Type", "application/xml")
-	resp, err := jenkins.sendRequest(req)
-	if err != nil {
-		return
-	}
+	//req.Header.Add("Content-Type", "application/xml")
+	//resp, err := jenkins.sendRequest(req)
+	//if err != nil {
+	//	return
+	//}
 	if resp.StatusCode != 200 {
 		return errors.New(fmt.Sprintf("error: HTTP POST returned status code returned: %d", resp.StatusCode))
 	}
@@ -183,19 +213,24 @@ func (jenkins *Jenkins) GetBuild(job Job, number int) (build Build, err error) {
 	return
 }
 
-// GetLastBuild returns the last build of specified job.
 func (jenkins *Jenkins) GetLastBuild(job Job) (build Build, err error) {
 	err = jenkins.get(fmt.Sprintf("/job/%s/lastBuild", job.Name), nil, &build)
 	return
 }
 
 // Create a new job
-func (jenkins *Jenkins) CreateJob(mavenJobItem MavenJobItem, jobName string) error {
-	mavenJobItemXml, _ := xml.Marshal(mavenJobItem)
-	reader := bytes.NewReader(mavenJobItemXml)
+//func (jenkins *Jenkins) CreateJob(mavenJobItem MavenJobItem, jobName string) error {
+//	mavenJobItemXml, _ := xml.Marshal(mavenJobItem)
+//	params := url.Values{"name": []string{jobName}}
+//
+//	return jenkins.postXml("/createItem", params, mavenJobItemXml, nil)
+//}
+
+func (jenkins *Jenkins) CreateJob(jobItem interface{}, jobName string) error {
+	mavenJobItemXml, _ := xml.Marshal(jobItem)
 	params := url.Values{"name": []string{jobName}}
 
-	return jenkins.postXml("/createItem", params, reader, nil)
+	return jenkins.postXml("/createItem", params, mavenJobItemXml, nil)
 }
 
 // Delete a job
@@ -212,10 +247,9 @@ func (jenkins *Jenkins) AddJobToView(viewName string, job Job) error {
 // Create a new view
 func (jenkins *Jenkins) CreateView(listView ListView) error {
 	xmlListView, _ := xml.Marshal(listView)
-	reader := bytes.NewReader(xmlListView)
 	params := url.Values{"name": []string{listView.Name}}
 
-	return jenkins.postXml("/createView", params, reader, nil)
+	return jenkins.postXml("/createView", params, xmlListView, nil)
 }
 
 // Create a new build for this job.
@@ -231,18 +265,20 @@ func (jenkins *Jenkins) Build(job Job, params url.Values) error {
 // Get the console output from a build.
 func (jenkins *Jenkins) GetBuildConsoleOutput(build Build) ([]byte, error) {
 	requestUrl := fmt.Sprintf("%s/consoleText", build.Url)
-	req, err := http.NewRequest("GET", requestUrl, nil)
+	//req, err := http.NewRequest("GET", requestUrl, nil)
+	//if err != nil {
+	//	return nil, err
+	//}
+	b, err := jenkins.addAuth(httplib.Get(requestUrl)).Bytes()
+
+	// res, err := jenkins.sendRequest(req)
 	if err != nil {
 		return nil, err
 	}
-
-	res, err := jenkins.sendRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-	return ioutil.ReadAll(res.Body)
+	//
+	//defer res.Body.Close()
+	//return ioutil.ReadAll(res.Body)
+	return b, nil
 }
 
 // GetQueue returns the current build queue from Jenkins
@@ -254,29 +290,33 @@ func (jenkins *Jenkins) GetQueue() (queue Queue, err error) {
 // GetArtifact return the content of a build artifact
 func (jenkins *Jenkins) GetArtifact(build Build, artifact Artifact) ([]byte, error) {
 	requestUrl := fmt.Sprintf("%s/artifact/%s", build.Url, artifact.RelativePath)
-	req, err := http.NewRequest("GET", requestUrl, nil)
+	//req, err := http.NewRequest("GET", requestUrl, nil)
+	//if err != nil {
+	//	return nil, err
+	//}
+	b, err := jenkins.addAuth(httplib.Get(requestUrl)).Bytes()
+
+	//res, err := jenkins.sendRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := jenkins.sendRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-	return ioutil.ReadAll(res.Body)
+	return b, nil
+	//defer res.Body.Close()
+	//return ioutil.ReadAll(res.Body)
 }
 
 // SetBuildDescription sets the description of a build
 func (jenkins *Jenkins) SetBuildDescription(build Build, description string) error {
 	requestUrl := fmt.Sprintf("%ssubmitDescription?description=%s", build.Url, url.QueryEscape(description))
-	req, err := http.NewRequest("GET", requestUrl, nil)
-	if err != nil {
-		return err
-	}
+	//req, err := http.NewRequest("GET", requestUrl, nil)
+	//if err != nil {
+	//	return err
+	//}
 
-	res, err := jenkins.sendRequest(req)
+	res, err := jenkins.addAuth(httplib.Get(requestUrl)).Response()
+
+	//res, err := jenkins.sendRequest(req)
 	if err != nil {
 		return err
 	}
@@ -318,4 +358,12 @@ func hasParams(job Job) bool {
 		}
 	}
 	return false
+}
+
+// GetLastBuild returns the last build of specified job.
+func (jenkins *Jenkins) GetPlugins() (plugins Plugins, err error) {
+
+	params := url.Values{"depth": []string{"1"}}
+	err = jenkins.get("/pluginManager", params, &plugins)
+	return
 }

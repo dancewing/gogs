@@ -408,3 +408,8 @@ func (f *DeleteRepoFile) Validate(ctx *macaron.Context, errs binding.Errors) bin
 func (f *DeleteRepoFile) IsNewBrnach() bool {
 	return f.CommitChoice == "commit-to-new-branch"
 }
+
+type NewPipeline struct {
+	Branch string
+	Status string
+}
