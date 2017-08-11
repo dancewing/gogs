@@ -54,7 +54,7 @@ func Test_Loading_File(t *testing.T) {
 	json, _ := json.MarshalIndent(ci, "", "  ")
 	fmt.Printf("%s \n", json)
 
-	writer := NewPipelineWriter()
+	writer := NewPipelineWriter(true)
 
 	p := ci.Pipeline.FilterStages("branch1", "prod")
 

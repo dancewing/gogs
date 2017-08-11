@@ -6,10 +6,13 @@ import (
 
 	"time"
 
+	"strings"
+
 	"github.com/go-xorm/xorm"
 	git "github.com/gogits/git-module"
 	api "github.com/gogits/go-gogs-client"
 	"github.com/gogits/gogs/pkg/jenkins_ci_parser"
+	"github.com/gogits/gogs/pkg/jenkins_client"
 	"github.com/kataras/iris/core/errors"
 	log "gopkg.in/clog.v1"
 )
@@ -403,7 +406,7 @@ func PreviewPipelineScript(repository *Repository, branch string) (string, error
 			return "", err
 		}
 
-		writer := jenkins_ci_parser.NewPipelineWriter()
+		writer := jenkins_ci_parser.NewPipelineWriter(true)
 
 		p := ci.Pipeline.FilterStages(branch, ci.DefaultEnvironment().Name)
 
@@ -419,7 +422,7 @@ func PreviewPipelineScript(repository *Repository, branch string) (string, error
 
 }
 
-func RunPipeline(repository *Repository, branch string, payload api.Payloader) error {
+func RunPipeline(repository *Repository, branch string, environment string, payload api.Payloader) error {
 	config, err := GetConfiguration(JENKINS, repository.ID)
 
 	if err != nil {
@@ -448,14 +451,20 @@ func RunPipeline(repository *Repository, branch string, payload api.Payloader) e
 			return err
 		}
 
-		writer := jenkins_ci_parser.NewPipelineWriter()
+		writer := jenkins_ci_parser.NewPipelineWriter(true)
 
-		p := ci.Pipeline.FilterStages(branch, ci.DefaultEnvironment().Name)
+		if environment == "" {
+			environment = ci.DefaultEnvironment().Name
+		}
+
+		p := ci.Pipeline.FilterStages(branch, environment)
 
 		p.Writer(writer)
 
 		//Generate Job
-		jobName := "showcase-build"
+		jobName := generateJobName(repository, branch, environment)
+
+		CheckJenkinsJob(jenkinsCfg.JenkinsHost, jenkinsCfg.JenkinsUser, jenkinsCfg.JenkinsToken, jobName, writer.String())
 
 		//Check Remote Job by Jenkins Client
 		task, err := runServiceTask(repository, payload, config, jobName)
@@ -479,8 +488,8 @@ func RunPipeline(repository *Repository, branch string, payload api.Payloader) e
 
 		for _, stage := range p.Stages {
 			job := &Job{
-				PipelineID: pipeline.ID,
-				Stage:      stage.Name,
+				PipelineID:   pipeline.ID,
+				Stage:        stage.Name,
 				RepositoryID: pipeline.RepositoryID,
 			}
 			_, err = CreateJob(job)
@@ -494,6 +503,9 @@ func RunPipeline(repository *Repository, branch string, payload api.Payloader) e
 	}
 
 	return nil
+}
+func generateJobName(repository *Repository, branch string, environment string) string {
+	return strings.Join([]string{repository.Owner.Name, repository.Name, branch, environment}, "_")
 }
 
 func GetLastCommit(repository *Repository, branch string) (*git.Commit, error) {
@@ -515,4 +527,32 @@ func GetLastCommit(repository *Repository, branch string) (*git.Commit, error) {
 		return nil, err
 	}
 	return commit, nil
+}
+
+func CheckJenkinsJob(host string, apiUser string, apiToken string, jobName string, scripts string) error {
+
+	jenkins := jenkins_client.NewJenkins(&jenkins_client.Auth{Username: apiUser, ApiToken: apiToken}, host)
+
+	_, err := jenkins.GetJob(jobName)
+
+	if err != nil {
+		//create Job
+
+		template, err := jenkins_client.NewWorkflowJobTemplate(jenkins)
+
+		if err != nil {
+			return err
+		}
+
+		template.Definition.Script = scripts
+
+		if err != nil {
+			jenkins.UpdateJob(template, jobName)
+		} else {
+			jenkins.CreateJob(template, jobName)
+		}
+
+	}
+
+	return nil
 }

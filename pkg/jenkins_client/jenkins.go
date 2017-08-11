@@ -201,6 +201,14 @@ func (jenkins *Jenkins) GetJob(name string) (job Job, err error) {
 	return
 }
 
+// GetJob returns a job which has specified name.
+func (jenkins *Jenkins) UpdateJob(jobItem interface{}, jobName string) (err error) {
+
+	jobItemXml, _ := xml.Marshal(jobItem)
+	return jenkins.postXml(fmt.Sprintf("/job/%s/config.xml", jobName), nil, jobItemXml, nil)
+
+}
+
 //GetJobConfig returns a maven job, has the one used to create Maven job
 func (jenkins *Jenkins) GetJobConfig(name string) (job MavenJobItem, err error) {
 	err = jenkins.getXml(fmt.Sprintf("/job/%s/config.xml", name), nil, &job)

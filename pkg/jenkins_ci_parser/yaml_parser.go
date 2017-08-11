@@ -64,7 +64,9 @@ func (c *JenkinsCiYamlParser) loadPipeline() (err error) {
 }
 
 func (c *JenkinsCiYamlParser) preparePipelineAgent(pipeline *Pipeline) (err error) {
-
+	//if agent, ok := c.pipelineConfig.GetString("agent"); ok {
+	//	pipeline.Agent.Mode = c.getTexts()
+	//}
 	return
 }
 

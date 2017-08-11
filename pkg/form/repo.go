@@ -411,5 +411,6 @@ func (f *DeleteRepoFile) IsNewBrnach() bool {
 
 type NewPipeline struct {
 	Branch string
+	Environment string
 	Status string
 }

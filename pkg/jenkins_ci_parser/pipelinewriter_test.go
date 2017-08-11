@@ -7,7 +7,7 @@ import (
 
 func Test_Writer(t *testing.T) {
 
-	writer := NewPipelineWriter()
+	writer := NewPipelineWriter(true)
 
 	writer.NewTag("pipeline").
 		NewLine("agent none").

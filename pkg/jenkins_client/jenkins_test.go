@@ -115,15 +115,24 @@ func TestCreateJobItem(t *testing.T) {
 		t.Errorf("error %v\n", err)
 	}
 
-	jobs, _ := jenkins.GetJobs()
-	foundNewJob := false
-	for _, v := range jobs {
-		if v.Name == newJobName {
-			foundNewJob = true
-		}
-	}
+	//jobs, _ := jenkins.GetJobs()
 
-	if !foundNewJob {
+	job, err := jenkins.GetJob(newJobName)
+
+	if err != nil {
 		t.Errorf("error %s not found\n", newJobName)
 	}
+
+	fmt.Printf("%v", job)
+
+	//foundNewJob := false
+	//for _, v := range jobs {
+	//	if v.Name == newJobName {
+	//		foundNewJob = true
+	//	}
+	//}
+	//
+	//if !foundNewJob {
+	//	t.Errorf("error %s not found\n", newJobName)
+	//}
 }

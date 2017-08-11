@@ -26,7 +26,7 @@ func (load *JenkinsServiceConfigLoad) Deliver(t *ServiceTask) error {
 
 	t.IsDelivered = true
 
-	t.URL = load.JenkinsHost + "gogs-webhook/?job=" + t.JenkinsJobName
+	t.URL = load.JenkinsHost + "/gogs-webhook/?job=" + t.JenkinsJobName
 
 	timeout := time.Duration(setting.Webhook.DeliverTimeout) * time.Second
 

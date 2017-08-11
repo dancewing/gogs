@@ -29,20 +29,50 @@ type Environment struct {
 }
 
 type Pipeline struct {
+	Agent   Agent      `json:"agent"`
 	Post    Post       `json:"post,omitempty"`
 	Stages  Stages     `json:"stages"`
 	Env     JenkinsEnv `json:"env,omitempty"`
 	Options Options    `json:"options,omitempty"`
+	Node    string     `json:"node"`
+}
+
+type Agent struct {
+	Mode string `json:"mode,omitempty"`
+}
+
+func (agent *Agent) Writer(writer *PipelineWriter) *PipelineWriter {
+
+	writer.NewLine("agent any")
+
+	return writer
 }
 
 func (pipeline *Pipeline) Writer(writer *PipelineWriter) *PipelineWriter {
-	var sub = writer.NewTag("pipeline")
 
-	pipeline.Stages.Writer(sub)
+	if writer.scripted {
 
-	sub.TagEnd()
+		writer.NewLine(`//Scripted Pipeline code, more details in https://jenkins.io/doc/book/pipeline/syntax/#scripted-pipeline`)
 
-	return writer
+		var sub = writer.NewTagName("node", pipeline.Node)
+
+		pipeline.Stages.Writer(sub)
+
+		sub.TagEnd()
+
+		return writer
+
+	} else {
+		var sub = writer.NewTag("pipeline")
+
+		pipeline.Agent.Writer(sub)
+		pipeline.Stages.Writer(sub)
+
+		sub.TagEnd()
+
+		return writer
+	}
+
 }
 
 func (pipeline *Pipeline) FilterStages(branch string, environment string) *Pipeline {
@@ -89,13 +119,25 @@ type Stage struct {
 
 func (stage Stage) Writer(writer *PipelineWriter) *PipelineWriter {
 
-	sub := writer.NewTagName("stage", stage.Name)
+	if writer.scripted {
 
-	sub.NewTagName("gogsReportStatus", stage.Name).NewTag("steps").NewLines(stage.Steps).TagEnd().TagEnd()
+		sub := writer.NewTagName("stage", stage.Name)
 
-	sub.TagEnd()
+		sub.NewTagName("gogsReportStatus", stage.Name).NewLines(stage.Steps).TagEnd()
 
-	return sub
+		sub.TagEnd()
+
+		return sub
+
+	} else {
+		sub := writer.NewTagName("stage", stage.Name)
+
+		sub.NewTagName("gogsReportStatus", stage.Name).NewTag("steps").NewLines(stage.Steps).TagEnd().TagEnd()
+
+		sub.TagEnd()
+
+		return sub
+	}
 }
 
 func (stage Stage) Match(branch string, environment string) bool {
@@ -129,7 +171,6 @@ func (stage Stage) Match(branch string, environment string) bool {
 		}
 
 		if branch != "" && environment != "" {
-
 			if foundBranch && foundEnv {
 				return matchBranch && matchEnv
 			} else if foundBranch {
@@ -160,14 +201,25 @@ type Stages []Stage
 
 func (stages Stages) Writer(writer *PipelineWriter) *PipelineWriter {
 
-	sub := writer.NewTag("stages")
+	if writer.scripted {
 
-	for _, s := range stages {
-		s.Writer(sub)
+		for _, s := range stages {
+			s.Writer(writer)
+		}
+
+		return writer
+	} else {
+
+		sub := writer.NewTag("stages")
+
+		for _, s := range stages {
+			s.Writer(sub)
+		}
+
+		sub.TagEnd()
+		return sub
 	}
 
-	sub.TagEnd()
-	return sub
 }
 
 type When struct {

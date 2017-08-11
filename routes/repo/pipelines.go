@@ -164,7 +164,7 @@ func NewPipelinePost(c *context.Context, form form.NewPipeline) {
 
 		return
 	} else {
-		err := models.RunPipeline(c.Repo.Repository, form.Branch, getFakePayroad(c, form.Branch))
+		err := models.RunPipeline(c.Repo.Repository, form.Branch, form.Environment, getFakePayroad(c, form.Branch))
 
 		if err != nil {
 			c.Handle(500, "PreviewPipelineScript", err)
@@ -255,7 +255,7 @@ func getFakePayroad(c *context.Context, branch string) api.Payloader {
 
 	// Grab latest commit or fake one if it's empty repository.
 	// commit := c.Repo.Commit
-	commit, err :=  models.GetLastCommit(c.Repo.Repository, branch)
+	commit, err := models.GetLastCommit(c.Repo.Repository, branch)
 
 	if commit == nil {
 		ghost := models.NewGhostUser()
@@ -285,8 +285,6 @@ func getFakePayroad(c *context.Context, branch string) api.Payloader {
 			return nil
 		}
 	}
-
-
 
 	fileStatus, err := commit.FileStatus()
 	if err != nil {

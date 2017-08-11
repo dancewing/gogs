@@ -11,6 +11,7 @@ type PipelineWriter struct {
 	buffer           bytes.Buffer
 	parent           *PipelineWriter
 	spaceIndentCount int
+	scripted         bool
 }
 
 func (writer *PipelineWriter) String() string {
@@ -29,18 +30,26 @@ func (writer *PipelineWriter) NewTag(tag string) *PipelineWriter {
 		buffer:           bytes.Buffer{},
 		parent:           writer,
 		spaceIndentCount: writer.spaceIndentCount + 1,
+		scripted:         writer.scripted,
 	}
 	return child
 }
 
 func (writer *PipelineWriter) NewTagName(tag string, name string) *PipelineWriter {
-	writer.WriteString(strings.Repeat(SPACE_INDENT, writer.spaceIndentCount) + tag + " ('" + name + "') {")
+
+	if name != "" {
+		writer.WriteString(strings.Repeat(SPACE_INDENT, writer.spaceIndentCount) + tag + " ('" + name + "') {")
+	} else {
+		writer.WriteString(strings.Repeat(SPACE_INDENT, writer.spaceIndentCount) + tag + " {")
+	}
+
 	writer.WriteString("\n")
 
 	child := &PipelineWriter{
 		buffer:           bytes.Buffer{},
 		parent:           writer,
 		spaceIndentCount: writer.spaceIndentCount + 1,
+		scripted:         writer.scripted,
 	}
 	return child
 }
@@ -75,8 +84,9 @@ func (writer *PipelineWriter) NewLines(lines []string) *PipelineWriter {
 	return writer
 }
 
-func NewPipelineWriter() *PipelineWriter {
+func NewPipelineWriter(scripted bool) *PipelineWriter {
 	return &PipelineWriter{
-		buffer: bytes.Buffer{},
+		buffer:   bytes.Buffer{},
+		scripted: scripted,
 	}
 }
