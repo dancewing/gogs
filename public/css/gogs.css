@@ -3217,3 +3217,116 @@ footer .ui.language .menu {
 .ui.user.list .item .description a:hover {
   text-decoration: underline;
 }
+.repository .ci-status {
+  padding: 2px 7px 4px;
+  border: 1px solid #eee;
+  white-space: nowrap;
+  border-radius: 4px;
+}
+.repository .ci-status:hover,
+.repository .ci-status:focus {
+  text-decoration: none;
+}
+.repository .ci-status svg {
+  height: 13px;
+  width: 13px;
+  position: relative;
+  top: 2px;
+  overflow: visible;
+}
+.repository .ci-status.ci-failed {
+  color: #db3b21;
+  border-color: #db3b21;
+}
+.repository .ci-status.ci-failed:not(span):hover {
+  background-color: #fbe7e4;
+  color: #c0341d;
+  border-color: #c0341d;
+}
+.repository .ci-status.ci-failed:not(span):hover svg {
+  fill: #c0341d;
+}
+.repository .ci-status.ci-failed svg {
+  fill: #db3b21;
+}
+.repository .ci-status.ci-success {
+  color: #1aaa55;
+  border-color: #1aaa55;
+}
+.repository .ci-status.ci-success:not(span):hover {
+  background-color: #e4f5eb;
+  color: #12753a;
+  border-color: #12753a;
+}
+.repository .ci-status.ci-success:not(span):hover svg {
+  fill: #12753a;
+}
+.repository .ci-status.ci-success svg {
+  fill: #1aaa55;
+}
+.repository .ci-status.ci-canceled,
+.repository .ci-status.ci-disabled,
+.repository .ci-status.ci-manual {
+  color: rgba(0, 0, 0, 0.85);
+  border-color: rgba(0, 0, 0, 0.85);
+}
+.repository .ci-status.ci-canceled:not(span):hover,
+.repository .ci-status.ci-disabled:not(span):hover,
+.repository .ci-status.ci-manual:not(span):hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+.repository .ci-status.ci-pending,
+.repository .ci-status.ci-failed_with_warnings,
+.repository .ci-status.ci-success_with_warnings {
+  color: #fc9403;
+  border-color: #fc9403;
+}
+.repository .ci-status.ci-pending:not(span):hover,
+.repository .ci-status.ci-failed_with_warnings:not(span):hover,
+.repository .ci-status.ci-success_with_warnings:not(span):hover {
+  background-color: #fff2e1;
+  color: #c26700;
+  border-color: #c26700;
+}
+.repository .ci-status.ci-pending:not(span):hover svg,
+.repository .ci-status.ci-failed_with_warnings:not(span):hover svg,
+.repository .ci-status.ci-success_with_warnings:not(span):hover svg {
+  fill: #c26700;
+}
+.repository .ci-status.ci-pending svg,
+.repository .ci-status.ci-failed_with_warnings svg,
+.repository .ci-status.ci-success_with_warnings svg {
+  fill: #fc9403;
+}
+.repository .ci-status.ci-info,
+.repository .ci-status.ci-running {
+  color: #1f78d1;
+  border-color: #1f78d1;
+}
+.repository .ci-status.ci-info:not(span):hover,
+.repository .ci-status.ci-running:not(span):hover {
+  background-color: #e4eff9;
+  color: #1b69b6;
+  border-color: #1b69b6;
+}
+.repository .ci-status.ci-info:not(span):hover svg,
+.repository .ci-status.ci-running:not(span):hover svg {
+  fill: #1b69b6;
+}
+.repository .ci-status.ci-info svg,
+.repository .ci-status.ci-running svg {
+  fill: #1f78d1;
+}
+.repository .ci-status.ci-created,
+.repository .ci-status.ci-skipped {
+  color: rgba(0, 0, 0, 0.55);
+  border-color: rgba(0, 0, 0, 0.55);
+}
+.repository .ci-status.ci-created:not(span):hover,
+.repository .ci-status.ci-skipped:not(span):hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+.repository .ci-status.ci-created svg,
+.repository .ci-status.ci-skipped svg {
+  fill: rgba(0, 0, 0, 0.55);
+}

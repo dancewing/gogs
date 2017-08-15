@@ -25,7 +25,6 @@ import (
 	"github.com/gogits/gogs/pkg/form"
 	"github.com/gogits/gogs/pkg/mailer"
 	"github.com/gogits/gogs/pkg/markup"
-	"github.com/gogits/gogs/pkg/search"
 	"github.com/gogits/gogs/pkg/setting"
 	"github.com/gogits/gogs/pkg/ssh"
 	"github.com/gogits/gogs/pkg/template/highlight"
@@ -50,7 +49,7 @@ func checkRunMode() {
 func NewServices() {
 	setting.NewServices()
 	mailer.NewContext()
-	search.NewClient()
+	//search.NewClient()
 }
 
 // GlobalInit is for global configuration reload-able.

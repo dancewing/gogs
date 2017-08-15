@@ -157,6 +157,19 @@ type WorkflowJobItem struct {
 	//GlobalSettings                   JobSettings          `xml:"globalSettings"`
 	//RunPostStepsIfResult             RunPostStepsIfResult `xml:"runPostStepsIfResult"`
 	//Postbuilders                     PostBuilders         `xml:"postbuilders"`
+	plugins Plugins `xml:"-"`
+}
+
+func (jobItem *WorkflowJobItem) AddProperty(property Property, pluginName string) {
+	if pluginName != "" {
+		version, err := jobItem.plugins.GetVersion(pluginName)
+		if err == nil {
+			property.SetPluginVersion(pluginName, version)
+			jobItem.Properties.Properties = append(jobItem.Properties.Properties, property)
+		}
+	} else {
+		jobItem.Properties.Properties = append(jobItem.Properties.Properties, property)
+	}
 }
 
 type CpsFlowDefinition struct {
@@ -165,6 +178,16 @@ type CpsFlowDefinition struct {
 	Plugin  string `xml:"plugin,attr"`
 	Script  string `xml:"script"`
 	Sandbox bool   `xml:"sandbox"`
+}
+
+type GogsProjectProperty struct {
+	XMLName    struct{} `xml:"org.jenkinsci.plugins.gogs.GogsProjectProperty"`
+	Plugin     string   `xml:"plugin,attr"`
+	GogsSecret string   `xml:"gogsSecret"`
+}
+
+func (property *GogsProjectProperty) SetPluginVersion(name, version string) {
+	property.Plugin = name + "@" + version
 }
 
 type PipelineTriggersJobProperty struct {
@@ -228,10 +251,12 @@ type JobSettings struct {
 type JobSetting struct {
 }
 
-type JobProperty struct {
+type JobProperty interface {
 }
 
-type JobProperties []JobProperty
+type JobProperties struct {
+	Properties []JobProperty
+}
 
 type Triggers struct {
 	Trigger []Trigger
@@ -320,3 +345,14 @@ func (iscm *Scm) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	}
 	return nil
 }
+
+type JobItem interface {
+	AddProperty(property Property, pluginName string)
+}
+
+type Property interface {
+	SetPluginVersion(name, version string)
+}
+
+var _ JobItem = new(WorkflowJobItem)
+var _ Property = new(GogsProjectProperty)

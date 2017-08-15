@@ -367,10 +367,13 @@ func NewIssue(c *context.Context) {
 	c.Data["PageIsIssueList"] = true
 	c.Data["RequireHighlightJS"] = true
 	c.Data["RequireSimpleMDE"] = true
+	c.Data["RequireDatetimepicker"] = true
+	c.Data["DateLang"] = setting.DateLang(c.Locale.Language())
 	setTemplateIfExists(c, ISSUE_TEMPLATE_KEY, IssueTemplateCandidates)
 	renderAttachmentSettings(c)
 
 	RetrieveRepoMetas(c, c.Repo.Repository)
+
 	if c.Written() {
 		return
 	}
@@ -437,6 +440,10 @@ func NewIssuePost(c *context.Context, f form.NewIssue) {
 	c.Data["PageIsIssueList"] = true
 	c.Data["RequireHighlightJS"] = true
 	c.Data["RequireSimpleMDE"] = true
+
+	c.Data["RequireDatetimepicker"] = true
+	c.Data["DateLang"] = setting.DateLang(c.Locale.Language())
+
 	renderAttachmentSettings(c)
 
 	labelIDs, milestoneID, assigneeID := ValidateRepoMetas(c, f)
@@ -454,6 +461,14 @@ func NewIssuePost(c *context.Context, f form.NewIssue) {
 		attachments = f.Files
 	}
 
+	deadline, err := time.ParseInLocation("2006-01-02", f.Deadline, time.Local)
+
+	if err != nil {
+		c.Data["Err_Deadline"] = true
+		c.RenderWithErr(c.Tr("repo.milestones.invalid_due_date_format"), ISSUE_NEW, &f)
+		return
+	}
+
 	issue := &models.Issue{
 		RepoID:      c.Repo.Repository.ID,
 		Title:       f.Title,
@@ -462,6 +477,8 @@ func NewIssuePost(c *context.Context, f form.NewIssue) {
 		MilestoneID: milestoneID,
 		AssigneeID:  assigneeID,
 		Content:     f.Content,
+		Weight:      f.Weight,
+		Deadline:    deadline,
 	}
 	if err := models.NewIssue(c.Repo.Repository, issue, labelIDs, attachments); err != nil {
 		c.Handle(500, "NewIssue", err)

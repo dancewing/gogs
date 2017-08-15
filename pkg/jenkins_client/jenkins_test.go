@@ -73,47 +73,64 @@ func TestCreateJobItem(t *testing.T) {
 
 	jenkins := NewJenkinsWithTestData()
 
-	//properties := []JobProperty{
-	//	PipelineTriggersJobProperty{
-	//
-	//	}
-	//}
 
-	plugins, err := jenkins.GetPlugins()
+	jobItem, err := NewWorkflowJobTemplate(jenkins)
 
-	if err != nil {
-		t.Errorf("error %v\n", err)
+
+	jobItem.Definition.Script = "testsssss"
+
+	gogsProperty := &GogsProjectProperty{
+		GogsSecret: "fs",
 	}
 
-	workflow_job, err := plugins.GetVersion("workflow-job")
-	if err != nil {
-		t.Errorf("error %v\n", err)
-	}
+	jobItem.AddProperty(gogsProperty, "gogs-webhook")
 
-	workflow_cps, err := plugins.GetVersion("workflow-cps")
-
-	if err != nil {
-		t.Errorf("error %v\n", err)
-	}
-
-	jobItem := WorkflowJobItem{
-		Plugin:           "workflow-job@" + workflow_job,
-		KeepDependencies: "false",
-		//Properties:       properties,
-		Disabled: "false",
-		Definition: CpsFlowDefinition{
-			Class:   "org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition",
-			Plugin:  "workflow-cps@" + workflow_cps,
-			Sandbox: true,
-		},
-	}
 
 	newJobName := fmt.Sprintf("test-%d", time.Now().UnixNano())
+
+
 	err = jenkins.CreateJob(jobItem, newJobName)
+
+	fmt.Printf("jobName : %s \n", newJobName)
 
 	if err != nil {
 		t.Errorf("error %v\n", err)
 	}
+
+	//jobs, _ := jenkins.GetJobs()
+
+	job, err := jenkins.GetJob(newJobName)
+
+	if err != nil {
+		t.Errorf("error %s not found\n", newJobName)
+	}
+
+	fmt.Printf("%v", job)
+
+	jobItem.Definition.Script = "update"
+
+	err = jenkins.UpdateJob(jobItem, newJobName)
+
+	if err != nil {
+		t.Errorf("error %s not found\n", newJobName)
+	}
+	//foundNewJob := false
+	//for _, v := range jobs {
+	//	if v.Name == newJobName {
+	//		foundNewJob = true
+	//	}
+	//}
+	//
+	//if !foundNewJob {
+	//	t.Errorf("error %s not found\n", newJobName)
+	//}
+}
+
+func TestGetJobByName(t *testing.T) {
+
+	jenkins := NewJenkinsWithTestData()
+
+	newJobName := "kuwago_jhipster-showcase_master_testing"
 
 	//jobs, _ := jenkins.GetJobs()
 

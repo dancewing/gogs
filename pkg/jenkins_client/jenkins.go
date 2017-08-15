@@ -114,14 +114,14 @@ func (jenkins *Jenkins) get(path string, params url.Values, body interface{}) (e
 	//if err != nil {
 	//	return
 	//}
-	return jenkins.addAuth(httplib.Get(requestUrl)).Debug(jenkins.debug).ToJson(body)
+	resp, err := jenkins.addAuth(httplib.Get(requestUrl)).Debug(jenkins.debug).Response()
 	//req := httplib.Get(requestUrl).ToJson(body)
 	//
-	//resp, err := jenkins.sendRequest(req)
-	//if err != nil {
-	//	return
-	//}
-	//return jenkins.parseResponse(resp, body)
+	if resp.StatusCode/100 != 2 {
+		return errors.New(fmt.Sprintf("cant process request, status code : %d", resp.StatusCode))
+	}
+
+	return jenkins.parseResponse(resp, body)
 }
 
 func (jenkins *Jenkins) getXml(path string, params url.Values, body interface{}) (err error) {
@@ -237,6 +237,10 @@ func (jenkins *Jenkins) GetLastBuild(job Job) (build Build, err error) {
 func (jenkins *Jenkins) CreateJob(jobItem interface{}, jobName string) error {
 	mavenJobItemXml, _ := xml.Marshal(jobItem)
 	params := url.Values{"name": []string{jobName}}
+
+	if jenkins.debug {
+
+	}
 
 	return jenkins.postXml("/createItem", params, mavenJobItemXml, nil)
 }

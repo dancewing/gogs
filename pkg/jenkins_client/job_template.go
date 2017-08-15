@@ -1,6 +1,9 @@
 package jenkins_client
 
-import "github.com/kataras/iris/core/errors"
+import "errors"
+
+type TemplateHolder struct {
+}
 
 func NewWorkflowJobTemplate(jenkins *Jenkins) (*WorkflowJobItem, error) {
 
@@ -30,6 +33,7 @@ func NewWorkflowJobTemplate(jenkins *Jenkins) (*WorkflowJobItem, error) {
 			Plugin:  "workflow-cps@" + workflow_cps,
 			Sandbox: true,
 		},
+		plugins: plugins,
 	}
 
 	return &jobItem, nil

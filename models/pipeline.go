@@ -15,6 +15,7 @@ import (
 	"github.com/gogits/gogs/pkg/jenkins_client"
 	"github.com/kataras/iris/core/errors"
 	log "gopkg.in/clog.v1"
+	"github.com/gpmgo/gopm/modules/setting"
 )
 
 const JENKINS_CI_YAML = ".jenkins-ci.yml"
@@ -464,7 +465,7 @@ func RunPipeline(repository *Repository, branch string, environment string, payl
 		//Generate Job
 		jobName := generateJobName(repository, branch, environment)
 
-		CheckJenkinsJob(jenkinsCfg.JenkinsHost, jenkinsCfg.JenkinsUser, jenkinsCfg.JenkinsToken, jobName, writer.String())
+		CheckJenkinsJob(jenkinsCfg, jobName, writer.String())
 
 		//Check Remote Job by Jenkins Client
 		task, err := runServiceTask(repository, payload, config, jobName)
@@ -529,13 +530,21 @@ func GetLastCommit(repository *Repository, branch string) (*git.Commit, error) {
 	return commit, nil
 }
 
-func CheckJenkinsJob(host string, apiUser string, apiToken string, jobName string, scripts string) error {
+func CheckJenkinsJob(jenkinsCfg *JenkinsServiceConfigLoad, jobName string, scripts string) error {
 
-	jenkins := jenkins_client.NewJenkins(&jenkins_client.Auth{Username: apiUser, ApiToken: apiToken}, host)
+	var jenkins *jenkins_client.Jenkins
+
+	if setting.Debug {
+		jenkins = jenkins_client.NewDebugJenkins(&jenkins_client.Auth{Username: jenkinsCfg.JenkinsUser, ApiToken: jenkinsCfg.JenkinsToken}, jenkinsCfg.JenkinsHost)
+
+	} else  {
+		jenkins = jenkins_client.NewJenkins(&jenkins_client.Auth{Username: jenkinsCfg.JenkinsUser, ApiToken: jenkinsCfg.JenkinsToken}, jenkinsCfg.JenkinsHost)
+	}
 
 	_, err := jenkins.GetJob(jobName)
 
-	if err != nil {
+	// FOUND JOB
+	if err == nil {
 		//create Job
 
 		template, err := jenkins_client.NewWorkflowJobTemplate(jenkins)
@@ -546,12 +555,29 @@ func CheckJenkinsJob(host string, apiUser string, apiToken string, jobName strin
 
 		template.Definition.Script = scripts
 
-		if err != nil {
-			jenkins.UpdateJob(template, jobName)
-		} else {
-			jenkins.CreateJob(template, jobName)
+		gogsProperty := &jenkins_client.GogsProjectProperty{
+			GogsSecret: jenkinsCfg.GogsToken,
 		}
 
+		template.AddProperty(gogsProperty, "gogs-webhook")
+
+		jenkins.UpdateJob(template, jobName)
+
+	} else {
+
+		template, err := jenkins_client.NewWorkflowJobTemplate(jenkins)
+
+		if err != nil {
+			return err
+		}
+		template.Definition.Script = scripts
+
+		gogsProperty := &jenkins_client.GogsProjectProperty{
+			GogsSecret: jenkinsCfg.GogsToken,
+		}
+		template.AddProperty(gogsProperty, "gogs-webhook")
+
+		jenkins.CreateJob(template, jobName)
 	}
 
 	return nil

@@ -1,15 +1,14 @@
 {{if eq .ServiceType "jenkins"}}
-<p>{{.i18n.Tr "repo.settings.add_webhook_desc" "https://gogs.io/docs/features/webhook.html" | Str2html}}</p>
 <form class="ui form" action="{{.BaseLink}}/settings/services/jenkins/edit" method="post">
 	{{.CSRFTokenHTML}}
 	<div class="field">
 		<div class="required field {{if .Err_PayloadURL}}error{{end}}">
-			<label for="payload_url">{{.i18n.Tr "repo.settings.payload_url"}}</label>
+			<label for="payload_url">{{.i18n.Tr "repo.settings.service.jenkins.host"}}</label>
 			<input id="payload_url" name="jenkins_host" type="url" value="{{.ServiceConfig.JenkinsHost}}" autofocus required>
 		</div>
 	</div>
 	<div class="field">
-		<label>Config File Type</label>
+		<label>{{.i18n.Tr "repo.settings.service.jenkins.file_type"}}</label>
 		<div class="ui selection dropdown">
 			<input type="hidden" id="content_type" name="jenkins_file_type" value="{{if .ServiceConfig.JenkinsFileType}}{{.ServiceConfig.JenkinsFileType}}{{else}}yaml{{end}}">
 			<div class="default text"></div>
@@ -21,14 +20,18 @@
 		</div>
 	</div>
 	<div class="field {{if .Err_JenkinsUser}}error{{end}}">
-		<label for="jenkins_user">Jenkins User</label>
+		<label for="jenkins_user">{{.i18n.Tr "repo.settings.service.jenkins.user"}}</label>
 		<input id="jenkins_user" name="jenkins_user" type="text" value="{{.ServiceConfig.JenkinsUser}}" autocomplete="off">
 	</div>
-	<input class="fake" type="password">
 	<div class="field {{if .Err_Secret}}error{{end}}">
-		<label for="secret">{{.i18n.Tr "repo.settings.secret"}}</label>
+		<label for="secret">{{.i18n.Tr "repo.settings.service.jenkins.token"}}</label>
 		<input id="secret" name="jenkins_token" type="password" value="{{.ServiceConfig.JenkinsToken}}" autocomplete="off">
-		<p class="text grey desc">{{.i18n.Tr "repo.settings.secret_desc" | Safe}}</p>
+		<p class="text grey desc">{{.i18n.Tr "repo.settings.service.jenkins.token_desc" | Safe}}</p>
+	</div>
+	<div class="field {{if .Err_Secret}}error{{end}}">
+		<label for="gogs_token">{{.i18n.Tr "repo.settings.service.jenkins.gogs_token"}}</label>
+		<input id="gogs_token" name="gogs_token" type="password" value="{{.ServiceConfig.GogsToken}}" autocomplete="off">
+		<p class="text grey desc">{{.i18n.Tr "repo.settings.service.jenkins.gogs_token_desc" | Safe}}</p>
 	</div>
 	{{template "repo/settings/service/settings" .}}
 </form>

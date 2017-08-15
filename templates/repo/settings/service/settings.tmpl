@@ -115,5 +115,5 @@
 	</div>
 </div>
 <div class="field">
-	<button class="ui green button">{{.i18n.Tr "repo.settings.update_webhook"}}</button>
+	<button class="ui green button">{{if .PageIsSettingsHooksNew}}{{.i18n.Tr "repo.settings.add_service"}}{{else}}{{.i18n.Tr "repo.settings.update_service"}}{{end}}</button>
 </div>

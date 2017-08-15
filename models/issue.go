@@ -47,6 +47,15 @@ type Issue struct {
 	PullRequest     *PullRequest `xorm:"-"`
 	NumComments     int
 
+	Weight int
+
+	ClosedDate     time.Time `xorm:"-"`
+	ClosedDateUnix int64
+	Reopened       time.Time `xorm:"-"`
+	ReopenedUnix   int64
+
+	NumReopen int
+
 	Deadline     time.Time `xorm:"-"`
 	DeadlineUnix int64
 	Created      time.Time `xorm:"-"`
@@ -76,6 +85,10 @@ func (issue *Issue) AfterSet(colName string, _ xorm.Cell) {
 		issue.Created = time.Unix(issue.CreatedUnix, 0).Local()
 	case "updated_unix":
 		issue.Updated = time.Unix(issue.UpdatedUnix, 0).Local()
+	case "close_unix":
+		if issue.ClosedDateUnix > 0 {
+			issue.ClosedDate = time.Unix(issue.ClosedDateUnix, 0).Local()
+		}
 	}
 }
 

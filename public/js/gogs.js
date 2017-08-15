@@ -415,6 +415,22 @@ function initRepository() {
             return false;
         });
 
+		var $datepicker = $('.milestone.datepicker');
+		$datepicker.datetimepicker({
+			lang: $datepicker.data('lang'),
+			inline: true,
+			timepicker: false,
+			startDate: $datepicker.data('start-date'),
+			formatDate: 'Y-m-d',
+			onSelectDate: function (ct) {
+				$('#deadline').val(ct.dateFormat('Y-m-d'));
+			}
+		});
+		$('#clear-date').click(function () {
+			$('#deadline').val('');
+			return false;
+		});
+
         // Edit issue or comment content
         $('.edit-content').click(function () {
             var $segment = $(this).parent().parent().parent().next();

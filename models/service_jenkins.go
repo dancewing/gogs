@@ -19,6 +19,7 @@ type JenkinsServiceConfigLoad struct {
 	JenkinsUser     string `json:"jenkins_user"`
 	JenkinsToken    string `json:"jenkins_token"`
 	JenkinsFileType string `json:"jenkins_file_type"`
+	GogsToken       string `json:"gogs_token"`
 	*ServiceConfigLoad
 }
 

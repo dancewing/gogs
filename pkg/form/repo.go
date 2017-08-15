@@ -208,6 +208,8 @@ type NewIssue struct {
 	MilestoneID int64
 	AssigneeID  int64
 	Content     string
+	Weight      int
+	Deadline    string
 	Files       []string
 }
 
@@ -410,7 +412,7 @@ func (f *DeleteRepoFile) IsNewBrnach() bool {
 }
 
 type NewPipeline struct {
-	Branch string
+	Branch      string
 	Environment string
-	Status string
+	Status      string
 }
