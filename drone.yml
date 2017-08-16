@@ -1,0 +1,51 @@
+version: '2'
+
+services:
+  drone-server:
+    image: drone/drone:0.8.0
+    ports:
+      - 88:8000
+    depends_on:
+      - drone-mysql
+    volumes:
+      - ~/temp/drone:/var/lib/drone/
+    environment:
+      - DRONE_OPEN=true
+      - DATABASE_DRIVER=mysql
+      - DATABASE_CONFIG=root:@tcp(drone-mysql:3306)/drone?parseTime=true
+      - DRONE_HOST=localhost
+      - DRONE_GOGS=true
+      - DRONE_GOGS_URL=http://gogs-server:3000
+#      - DRONE_GITHUB=true
+#      - DRONE_GITHUB_CLIENT=${DRONE_GITHUB_CLIENT}
+#      - DRONE_GITHUB_SECRET=${DRONE_GITHUB_SECRET}
+      - DRONE_SECRET=38f24d04efb01c9880b9ecca049e47f81e70074d
+
+
+  drone-agent:
+     image: drone/drone:0.8.0
+     command: agent
+     #restart: always
+     depends_on:
+       - drone-server
+     volumes:
+       - /var/run/docker.sock:/var/run/docker.sock
+     environment:
+       - DATABASE_DRIVER=mysql
+       - DATABASE_CONFIG=root:@tcp(drone-mysql:3306)/drone?parseTime=true
+       - DRONE_HOST=localhost
+       - DRONE_SERVER=ws://drone-server:8000/ws/broker
+       - DRONE_SECRET=38f24d04efb01c9880b9ecca049e47f81e70074d
+       - DRONE_GOGS=true
+       - DRONE_GOGS_URL=http://gogs-server:3000
+
+  drone-mysql:
+        image: mysql:5.7.18
+        # volumes:
+        environment:
+            - MYSQL_USER=root
+            - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+            - MYSQL_DATABASE=drone
+        ports:
+            - 3316:3306
+        command: mysqld --lower_case_table_names=1 --skip-ssl --character_set_server=utf8 --explicit_defaults_for_timestamp

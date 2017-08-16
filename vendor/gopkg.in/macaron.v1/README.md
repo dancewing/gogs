@@ -69,7 +69,6 @@ There are already many [middlewares](https://github.com/go-macaron) to simplify 
 ## Use Cases
 
 - [Gogs](https://gogs.io): A painless self-hosted Git Service
-- [Grafana](http://grafana.org/): The tool for beautiful monitoring and metric analytics & dashboards
 - [Peach](https://peachdocs.org): A modern web documentation server
 - [Go Walker](https://gowalker.org): Go online API documentation
 - [Switch](https://gopm.io): Gopm registry

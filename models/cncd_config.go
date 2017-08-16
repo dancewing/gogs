@@ -1,0 +1,21 @@
+package models
+
+// ConfigStore persists pipeline configuration to storage.
+type ConfigStore interface {
+	ConfigLoad(int64) (*Config, error)
+	ConfigFind(*Repository, string) (*Config, error)
+	ConfigFindApproved(*Config) (bool, error)
+	ConfigCreate(*Config) error
+}
+
+// Config represents a pipeline configuration.
+type Config struct {
+	ID     int64  `json:"-"    meddler:"config_id,pk"`
+	RepoID int64  `json:"-"    meddler:"config_repo_id"`
+	Data   string `json:"data" meddler:"config_data"`
+	Hash   string `json:"hash" meddler:"config_hash"`
+}
+
+func (t Config) TableName() string {
+	return "cncd_config"
+}
