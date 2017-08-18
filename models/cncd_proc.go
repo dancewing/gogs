@@ -1,5 +1,11 @@
 package models
 
+import (
+	"fmt"
+
+	"github.com/kataras/iris/core/errors"
+)
+
 // ProcStore persists process information to storage.
 type ProcStore interface {
 	ProcLoad(int64) (*Proc, error)
@@ -14,21 +20,25 @@ type ProcStore interface {
 // Proc represents a process in the build pipeline.
 // swagger:model proc
 type Proc struct {
-	ID       int64             `json:"id"                   meddler:"proc_id,pk"`
-	BuildID  int64             `json:"build_id"             meddler:"proc_build_id"`
-	PID      int               `json:"pid"                  meddler:"proc_pid"`
-	PPID     int               `json:"ppid"                 meddler:"proc_ppid"`
-	PGID     int               `json:"pgid"                 meddler:"proc_pgid"`
-	Name     string            `json:"name"                 meddler:"proc_name"`
-	State    string            `json:"state"                meddler:"proc_state"`
-	Error    string            `json:"error,omitempty"      meddler:"proc_error"`
-	ExitCode int               `json:"exit_code"            meddler:"proc_exit_code"`
-	Started  int64             `json:"start_time,omitempty" meddler:"proc_started"`
-	Stopped  int64             `json:"end_time,omitempty"   meddler:"proc_stopped"`
-	Machine  string            `json:"machine,omitempty"    meddler:"proc_machine"`
-	Platform string            `json:"platform,omitempty"   meddler:"proc_platform"`
-	Environ  map[string]string `json:"environ,omitempty"    meddler:"proc_environ,json"`
-	Children []*Proc           `json:"children,omitempty"   meddler:"-"`
+	ID       int64             `json:"id"                   `
+	BuildID  int64             `json:"build_id"             `
+	PID      int               `json:"pid"                  `
+	PPID     int               `json:"ppid"                 `
+	PGID     int               `json:"pgid"                 `
+	Name     string            `json:"name"                 `
+	State    string            `json:"state"                `
+	Error    string            `json:"error,omitempty"      xorm:"TEXT"`
+	ExitCode int               `json:"exit_code"            `
+	Started  int64             `json:"start_time,omitempty" `
+	Stopped  int64             `json:"end_time,omitempty"   `
+	Machine  string            `json:"machine,omitempty"    `
+	Platform string            `json:"platform,omitempty"   `
+	Environ  map[string]string `json:"environ,omitempty"    xorm:"JSON"`
+	Children []*Proc           `json:"children,omitempty"   xorm:"-"`
+}
+
+func (t Proc) TableName() string {
+	return "cncd_proc"
 }
 
 // Running returns true if the process state is pending or running.
@@ -57,4 +67,64 @@ func Tree(procs []*Proc) []*Proc {
 		}
 	}
 	return nodes
+}
+
+func ProcCreate(procs []*Proc) (err error) {
+
+	sess := x.NewSession()
+	defer sess.Close()
+	if err = sess.Begin(); err != nil {
+		return err
+	}
+
+	for _, p := range procs {
+		_, err = sess.InsertOne(p)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return sess.Commit()
+}
+
+func ProcList(build *Build) ([]*Proc, error) {
+
+	procs := make([]*Proc, 0)
+
+	if err := x.Where("build_id = ? ", build.ID).Find(&procs); err != nil {
+		return nil, err
+	}
+
+	return procs, nil
+}
+
+func ProcUpdate(proc *Proc) (err error) {
+	_, err = x.ID(proc.ID).AllCols().Update(proc)
+	return err
+}
+
+func ProcLoad(id int64) (*Proc, error) {
+	proc := new(Proc)
+	has, err := x.Id(id).Get(proc)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, errors.New(fmt.Sprintf("Proc with ID %d not exisit ", id))
+	}
+	return proc, nil
+}
+
+func ProcChild(build *Build, pid int, child string) (*Proc, error) {
+	procs := make([]*Proc, 0)
+
+	err := x.Where("build_id = ? and ppid = ? and name = ?", build.ID, pid, child).Limit(1, 0).Find(&procs)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(procs) > 0 {
+		return procs[0], nil
+	}
+	return nil, errors.New(fmt.Sprintf("Proc not found with name %s ", child))
 }

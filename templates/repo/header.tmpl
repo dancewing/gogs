@@ -74,6 +74,9 @@
 				<a class="{{if .PageIsPipelines}}active{{end}} item" href="{{.RepoLink}}/pipelines">
 					<i class="octicon octicon-tools"></i> Pipelines
 				</a>
+				<a class="{{if .PageIsCNCD}}active{{end}} item" href="{{.RepoLink}}/cncd">
+					<i class="octicon octicon-tools"></i> CNCD
+				</a>
 			{{if .IsRepositoryAdmin}}
 				<div class="right menu">
 					<a class="{{if .PageIsSettings}}active{{end}} item" href="{{.RepoLink}}/settings">

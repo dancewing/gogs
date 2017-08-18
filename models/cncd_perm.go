@@ -11,11 +11,16 @@ type PermStore interface {
 
 // Perm defines a repository permission for an individual user.
 type Perm struct {
-	UserID int64  `json:"-"      meddler:"perm_user_id"`
-	RepoID int64  `json:"-"      meddler:"perm_repo_id"`
-	Repo   string `json:"-"      meddler:"-"`
-	Pull   bool   `json:"pull"   meddler:"perm_pull"`
-	Push   bool   `json:"push"   meddler:"perm_push"`
-	Admin  bool   `json:"admin"  meddler:"perm_admin"`
-	Synced int64  `json:"synced" meddler:"perm_synced"`
+	UserID int64  `json:"-"      `
+	RepoID int64  `json:"-"      `
+	Repo   string `json:"-"      xorm:"-"`
+	Pull   bool   `json:"pull"   `
+	Push   bool   `json:"push"   `
+	Admin  bool   `json:"admin"  `
+	Synced int64  `json:"synced" `
+}
+
+
+func (t Perm) TableName() string {
+	return "cncd_perm"
 }

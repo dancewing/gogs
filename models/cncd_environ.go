@@ -22,13 +22,23 @@ type EnvironStore interface {
 // Environ represents an environment variable.
 // swagger:model environ
 type Environ struct {
-	ID    int64  `json:"id"              meddler:"env_id,pk"`
-	Name  string `json:"name"            meddler:"env_name"`
-	Value string `json:"value,omitempty" meddler:"env_value"`
+	ID    int64  `json:"id"              `
+	Name  string `json:"name"            `
+	Value string `json:"value,omitempty" `
 }
 
 func (t Environ) TableName() string {
 	return "cncd_environ"
+}
+
+func EnvironList() ([]*Environ, error) {
+	environs := make([]*Environ, 0)
+
+	if err := x.Find(&environs); err != nil {
+		return nil, err
+	}
+
+	return environs, nil
 }
 
 // Validate validates the required fields and formats.

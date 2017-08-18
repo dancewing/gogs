@@ -631,7 +631,18 @@ func PrepareWebhooks(repo *Repository, event HookEventType, p api.Payloader) err
 
 	//preparePipelineHooks(x, repo, event, p)
 
-	prepareServices(x, repo, event, p)
+	defer func() {
+		//uri := fmt.Sprintf("%s/%s/%d", httputil.GetURL(c.Request), repo.FullName, build.Number)
+		//err = remote_.Status(user, repo, build, uri)
+		//if err != nil {
+		//	logrus.Errorf("error setting commit status for %s/%d", repo.FullName, build.Number)
+		//}
+
+		prepareServices(x, repo, event, p)
+		PrepareCNCD(repo, event, p)
+	}()
+
+	//prepareServices(x, repo, event, p)
 
 	return prepareWebhooks(x, repo, event, p)
 }

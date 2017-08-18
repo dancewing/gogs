@@ -84,4 +84,5 @@ legacy:
 
 
 dev_bindata :
+	rm pkg/bindata/bindata.go
 	go-bindata -debug -o=pkg/bindata/bindata.go -ignore="\\.DS_Store|README.md|TRANSLATORS" -pkg=bindata conf/...

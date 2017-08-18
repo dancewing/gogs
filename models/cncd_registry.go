@@ -29,13 +29,17 @@ type RegistryStore interface {
 // Registry represents a docker registry with credentials.
 // swagger:model registry
 type Registry struct {
-	ID       int64  `json:"id"       meddler:"registry_id,pk"`
-	RepoID   int64  `json:"-"        meddler:"registry_repo_id"`
-	Address  string `json:"address"  meddler:"registry_addr"`
-	Username string `json:"username" meddler:"registry_username"`
-	Password string `json:"password" meddler:"registry_password"`
-	Email    string `json:"email"    meddler:"registry_email"`
-	Token    string `json:"token"    meddler:"registry_token"`
+	ID       int64  `json:"id"       `
+	RepoID   int64  `json:"-"        `
+	Address  string `json:"address"  `
+	Username string `json:"username" `
+	Password string `json:"password" `
+	Email    string `json:"email"    `
+	Token    string `json:"token"    `
+}
+
+func (t Registry) TableName() string {
+	return "cncd_registry"
 }
 
 // Validate validates the registry information.
@@ -62,4 +66,15 @@ func (r *Registry) Copy() *Registry {
 		Email:    r.Email,
 		Token:    r.Token,
 	}
+}
+
+
+func RegistryList(repo *Repository) ([]*Registry, error) {
+	regs := make([]*Registry, 0)
+
+	if err := x.Where("repo_id = ? ", repo.ID ).Find(&regs); err != nil {
+		return nil, err
+	}
+
+	return regs, nil
 }

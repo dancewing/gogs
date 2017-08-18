@@ -9,22 +9,41 @@ import (
 
 // Task defines scheduled pipeline Task.
 type Task struct {
-	ID     string            `meddler:"task_id"`
-	Data   []byte            `meddler:"task_data"`
-	Labels map[string]string `meddler:"task_labels,json"`
+	ID     string            ``
+	Data   []byte            ``
+	Labels map[string]string `xorm:"JSON"`
 }
 
-// TaskStore defines storage for scheduled Tasks.
-type TaskStore interface {
-	TaskList() ([]*Task, error)
-	TaskInsert(*Task) error
-	TaskDelete(string) error
+func (t Task) TableName() string {
+	return "cncd_task"
+}
+
+func TaskInsert(task *Task) error {
+	_, err := x.Insert(task)
+	return err
+}
+
+func TaskDelete(id string) error {
+	_, err := x.Delete(&Task{
+		ID :id,
+	})
+	return err
+}
+
+func TaskList() ([]*Task, error) {
+	tasks := make([]*Task, 0)
+
+	if err := x.Find(&tasks); err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
 }
 
 // WithTaskStore returns a queue that is backed by the TaskStore. This
 // ensures the task Queue can be restored when the system starts.
-func WithTaskStore(q queue.Queue, s TaskStore) queue.Queue {
-	tasks, _ := s.TaskList()
+func WithTaskStore(q queue.Queue) queue.Queue {
+	tasks, _ := TaskList()
 	for _, task := range tasks {
 		q.Push(context.Background(), &queue.Task{
 			ID:     task.ID,
@@ -32,24 +51,23 @@ func WithTaskStore(q queue.Queue, s TaskStore) queue.Queue {
 			Labels: task.Labels,
 		})
 	}
-	return &persistentQueue{q, s}
+	return &persistentQueue{q}
 }
 
 type persistentQueue struct {
 	queue.Queue
-	store TaskStore
 }
 
 // Push pushes an task to the tail of this queue.
 func (q *persistentQueue) Push(c context.Context, task *queue.Task) error {
-	q.store.TaskInsert(&Task{
+	TaskInsert(&Task{
 		ID:     task.ID,
 		Data:   task.Data,
 		Labels: task.Labels,
 	})
 	err := q.Queue.Push(c, task)
 	if err != nil {
-		q.store.TaskDelete(task.ID)
+		TaskDelete(task.ID)
 	}
 	return err
 }
@@ -59,7 +77,7 @@ func (q *persistentQueue) Poll(c context.Context, f queue.Filter) (*queue.Task, 
 	task, err := q.Queue.Poll(c, f)
 	if task != nil {
 		logrus.Debugf("pull queue item: %s: remove from backup", task.ID)
-		if derr := q.store.TaskDelete(task.ID); derr != nil {
+		if derr := TaskDelete(task.ID); derr != nil {
 			logrus.Errorf("pull queue item: %s: failed to remove from backup: %s", task.ID, derr)
 		} else {
 			logrus.Debugf("pull queue item: %s: successfully removed from backup", task.ID)
@@ -72,7 +90,7 @@ func (q *persistentQueue) Poll(c context.Context, f queue.Filter) (*queue.Task, 
 func (q *persistentQueue) Evict(c context.Context, id string) error {
 	err := q.Queue.Evict(c, id)
 	if err == nil {
-		q.store.TaskDelete(id)
+		TaskDelete(id)
 	}
 	return err
 }

@@ -55,6 +55,7 @@ func NewServices() {
 // GlobalInit is for global configuration reload-able.
 func GlobalInit() {
 	setting.NewContext()
+
 	log.Trace("Custom path: %s", setting.CustomPath)
 	log.Trace("Log path: %s", setting.LogRootPath)
 	models.LoadConfigs()
@@ -68,6 +69,7 @@ func GlobalInit() {
 		}
 		models.HasEngine = true
 
+		models.InitCNCDGlobalService()
 		models.LoadRepoConfig()
 		models.NewRepoContext()
 
@@ -75,6 +77,7 @@ func GlobalInit() {
 		cron.NewContext()
 		models.InitSyncMirrors()
 		models.InitDeliverHooks()
+		models.InitDeliverBuilds()
 		models.InitServices()
 		models.InitTestPullRequests()
 	}

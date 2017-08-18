@@ -17,12 +17,17 @@ type SenderStore interface {
 }
 
 type Sender struct {
-	ID     int64    `json:"-"      meddler:"sender_id,pk"`
-	RepoID int64    `json:"-"      meddler:"sender_repo_id"`
-	Login  string   `json:"login"  meddler:"sender_login"`
-	Allow  bool     `json:"allow"  meddler:"sender_allow"`
-	Block  bool     `json:"block"  meddler:"sender_block"`
-	Branch []string `json:"branch" meddler:"-"`
-	Deploy []string `json:"deploy" meddler:"-"`
-	Event  []string `json:"event"  meddler:"-"`
+	ID     int64    `json:"-"      `
+	RepoID int64    `json:"-"      `
+	Login  string   `json:"login"  `
+	Allow  bool     `json:"allow"  `
+	Block  bool     `json:"block"  `
+	Branch []string `json:"branch" xorm:"-"`
+	Deploy []string `json:"deploy" xorm:"-"`
+	Event  []string `json:"event"  xorm:"-"`
+}
+
+
+func (t Sender) TableName() string {
+	return "cncd_sender"
 }

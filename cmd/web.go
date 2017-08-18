@@ -5,7 +5,9 @@
 package cmd
 
 import (
+	cc "context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -13,7 +15,6 @@ import (
 	"net/http/fcgi"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/Unknwon/com"
 	"github.com/go-macaron/binding"
@@ -42,12 +43,18 @@ import (
 	apiv1 "github.com/gogits/gogs/routes/api/v1"
 	apiv4 "github.com/gogits/gogs/routes/api/v4"
 	//	"github.com/gogits/gogs/routes/dev"
+
+	"github.com/cncd/pipeline/pipeline/rpc/proto"
 	"github.com/go-macaron/sockets"
 	"github.com/gogits/gogs/pkg/ws"
 	"github.com/gogits/gogs/routes/org"
 	"github.com/gogits/gogs/routes/project"
 	"github.com/gogits/gogs/routes/repo"
 	"github.com/gogits/gogs/routes/user"
+	oldcontext "golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 var Web = cli.Command{
@@ -59,6 +66,7 @@ and it takes care of all the other things for you`,
 	Flags: []cli.Flag{
 		stringFlag("port, p", "3000", "Temporary port number to prevent conflict"),
 		stringFlag("config, c", "custom/conf/app.ini", "Custom configuration file path"),
+		boolFlag("local", "Set Gogs run mode to local, get outbound ip address"),
 	},
 }
 
@@ -165,6 +173,16 @@ func runWeb(c *cli.Context) error {
 	if c.IsSet("config") {
 		setting.CustomConf = c.String("config")
 	}
+	// Flag for port number in case first time run conflict.
+	if c.IsSet("port") {
+		setting.CustomPort = c.String("port")
+	}
+
+	if c.IsSet("local") {
+		setting.LocalMode = c.Bool("local")
+	}
+
+	models.LoadCNCDGlobalConfig(c)
 	routes.GlobalInit()
 	checkVersion()
 
@@ -462,6 +480,11 @@ func runWeb(c *cli.Context) error {
 
 			})
 
+			m.Group("/cncd", func() {
+				m.Get("", repo.GetSecretList)
+				m.Get("/secrets", repo.GetSecretList)
+			})
+
 			m.Group("/services", func() {
 				m.Get("", repo.Services)
 				m.Get("/:type", repo.ServicesEdit)
@@ -518,6 +541,14 @@ func runWeb(c *cli.Context) error {
 		m.Group("/environments", func() {
 			m.Get("", repo.ListEnvironments)
 			m.Get("/:id", repo.ViewEnvironment)
+		})
+
+		m.Group("/cncd", func() {
+			m.Get("", repo.GetBuildList)
+			m.Get("/:id", repo.GetBuild)
+			m.Combo("/new").Get(repo.NewPipeline).Post(bindIgnErr(form.NewPipeline{}), repo.NewPipelinePost)
+			m.Get("/jobs", repo.ListJobs)
+
 		})
 
 	}, ignSignIn, context.RepoAssignment(true))
@@ -726,74 +757,136 @@ func runWeb(c *cli.Context) error {
 	// Not found handler.
 	m.NotFound(routes.NotFound)
 
-	// Flag for port number in case first time run conflict.
-	if c.IsSet("port") {
-		setting.AppURL = strings.Replace(setting.AppURL, setting.HTTPPort, c.String("port"), 1)
-		setting.HTTPPort = c.String("port")
-	}
+	var g errgroup.Group
 
-	var listenAddr string
-	if setting.Protocol == setting.SCHEME_UNIX_SOCKET {
-		listenAddr = fmt.Sprintf("%s", setting.HTTPAddr)
-	} else {
-		listenAddr = fmt.Sprintf("%s:%s", setting.HTTPAddr, setting.HTTPPort)
-	}
-	log.Info("Listen: %v://%s%s", setting.Protocol, listenAddr, setting.AppSubURL)
+	// start the grpc server
+	g.Go(func() error {
 
-	var err error
-	switch setting.Protocol {
-	case setting.SCHEME_HTTP:
-		err = http.ListenAndServe(listenAddr, m)
-	case setting.SCHEME_HTTPS:
-		var tlsMinVersion uint16
-		switch setting.TLSMinVersion {
-		case "SSL30":
-			tlsMinVersion = tls.VersionSSL30
-		case "TLS12":
-			tlsMinVersion = tls.VersionTLS12
-		case "TLS11":
-			tlsMinVersion = tls.VersionTLS11
-		case "TLS10":
-			fallthrough
-		default:
-			tlsMinVersion = tls.VersionTLS10
-		}
-		server := &http.Server{Addr: listenAddr, TLSConfig: &tls.Config{
-			MinVersion:               tlsMinVersion,
-			CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-			PreferServerCipherSuites: true,
-			CipherSuites: []uint16{
-				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, // Required for HTTP/2 support.
-				tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-				tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-			},
-		}, Handler: m}
-		err = server.ListenAndServeTLS(setting.CertFile, setting.KeyFile)
-	case setting.SCHEME_FCGI:
-		err = fcgi.Serve(nil, m)
-	case setting.SCHEME_UNIX_SOCKET:
-		os.Remove(listenAddr)
-
-		var listener *net.UnixListener
-		listener, err = net.ListenUnix("unix", &net.UnixAddr{listenAddr, "unix"})
+		lis, err := net.Listen("tcp", ":9000")
 		if err != nil {
-			break // Handle error after switch
+			log.Fatal(4, "Fail to start server: %v", err)
+			return err
+		}
+		auther := &authorizer{
+			password: c.String("agent-secret"),
+		}
+		s := grpc.NewServer(
+			grpc.StreamInterceptor(auther.streamInterceptor),
+			grpc.UnaryInterceptor(auther.unaryIntercaptor),
+		)
+		ss := new(models.DroneServer)
+		ss.Queue = models.CNCDConfig.Services.Queue
+		ss.Logger = models.CNCDConfig.Services.Logs
+		ss.Pubsub = models.CNCDConfig.Services.Pubsub
+		//ss.Remote = remote_
+		//ss.Store = store_
+		ss.Host = models.CNCDConfig.Server.Host
+		proto.RegisterDroneServer(s, ss)
+
+		err = s.Serve(lis)
+		if err != nil {
+			log.Fatal(4, "Failed to start DroneServer : %v", err)
+			return err
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+
+		var listenAddr string
+		if setting.Protocol == setting.SCHEME_UNIX_SOCKET {
+			listenAddr = fmt.Sprintf("%s", setting.HTTPAddr)
+		} else {
+			listenAddr = fmt.Sprintf("%s:%s", setting.HTTPAddr, setting.HTTPPort)
+		}
+		log.Info("Listen: %v://%s%s", setting.Protocol, listenAddr, setting.AppSubURL)
+
+		var err error
+		switch setting.Protocol {
+		case setting.SCHEME_HTTP:
+			err = http.ListenAndServe(listenAddr, m)
+		case setting.SCHEME_HTTPS:
+			var tlsMinVersion uint16
+			switch setting.TLSMinVersion {
+			case "SSL30":
+				tlsMinVersion = tls.VersionSSL30
+			case "TLS12":
+				tlsMinVersion = tls.VersionTLS12
+			case "TLS11":
+				tlsMinVersion = tls.VersionTLS11
+			case "TLS10":
+				fallthrough
+			default:
+				tlsMinVersion = tls.VersionTLS10
+			}
+			server := &http.Server{Addr: listenAddr, TLSConfig: &tls.Config{
+				MinVersion:               tlsMinVersion,
+				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+				PreferServerCipherSuites: true,
+				CipherSuites: []uint16{
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, // Required for HTTP/2 support.
+					tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+					tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+				},
+			}, Handler: m}
+			err = server.ListenAndServeTLS(setting.CertFile, setting.KeyFile)
+		case setting.SCHEME_FCGI:
+			err = fcgi.Serve(nil, m)
+		case setting.SCHEME_UNIX_SOCKET:
+			os.Remove(listenAddr)
+
+			var listener *net.UnixListener
+			listener, err = net.ListenUnix("unix", &net.UnixAddr{listenAddr, "unix"})
+			if err != nil {
+				break // Handle error after switch
+			}
+
+			// FIXME: add proper implementation of signal capture on all protocols
+			// execute this on SIGTERM or SIGINT: listener.Close()
+			if err = os.Chmod(listenAddr, os.FileMode(setting.UnixSocketPermission)); err != nil {
+				log.Fatal(4, "Failed to set permission of unix socket: %v", err)
+			}
+			err = http.Serve(listener, m)
+		default:
+			log.Fatal(4, "Invalid protocol: %s", setting.Protocol)
 		}
 
-		// FIXME: add proper implementation of signal capture on all protocols
-		// execute this on SIGTERM or SIGINT: listener.Close()
-		if err = os.Chmod(listenAddr, os.FileMode(setting.UnixSocketPermission)); err != nil {
-			log.Fatal(4, "Failed to set permission of unix socket: %v", err)
+		if err != nil {
+			log.Fatal(4, "Fail to start server: %v", err)
 		}
-		err = http.Serve(listener, m)
-	default:
-		log.Fatal(4, "Invalid protocol: %s", setting.Protocol)
-	}
 
-	if err != nil {
-		log.Fatal(4, "Fail to start server: %v", err)
-	}
+		return err
+	})
 
-	return nil
+	return g.Wait()
+}
+
+type authorizer struct {
+	username string
+	password string
+}
+
+func (a *authorizer) streamInterceptor(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	if err := a.authorize(stream.Context()); err != nil {
+		return err
+	}
+	return handler(srv, stream)
+}
+
+func (a *authorizer) unaryIntercaptor(ctx oldcontext.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	if err := a.authorize(ctx); err != nil {
+		return nil, err
+	}
+	return handler(ctx, req)
+}
+
+func (a *authorizer) authorize(ctx cc.Context) error {
+	if md, ok := metadata.FromContext(ctx); ok {
+		if len(md["password"]) > 0 && md["password"][0] == a.password {
+			return nil
+		}
+		return errors.New("invalid agent token")
+	}
+	return errors.New("missing agent token")
 }

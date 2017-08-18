@@ -5,6 +5,7 @@
 package setting
 
 import (
+	"errors"
 	"net/mail"
 	"net/url"
 	"os"
@@ -26,6 +27,8 @@ import (
 	"gopkg.in/ini.v1"
 
 	"github.com/gogits/go-libravatar"
+
+	"net"
 
 	"github.com/gogits/gogs/pkg/bindata"
 	"github.com/gogits/gogs/pkg/process"
@@ -308,6 +311,8 @@ var (
 	Cfg          *ini.File
 	CustomPath   string // Custom directory path
 	CustomConf   string
+	CustomPort   string
+	LocalMode    bool
 	ProdMode     bool
 	RunUser      string
 	IsWindows    bool
@@ -436,20 +441,14 @@ func NewContext() {
 
 	sec := Cfg.Section("server")
 	AppName = Cfg.Section("").Key("APP_NAME").MustString("Gogs")
-	AppURL = sec.Key("ROOT_URL").MustString("http://localhost:3000/")
-	if AppURL[len(AppURL)-1] != '/' {
-		AppURL += "/"
-	}
 
-	// Check if has app suburl.
-	url, err := url.Parse(AppURL)
-	if err != nil {
-		log.Fatal(2, "Invalid ROOT_URL '%s': %s", AppURL, err)
+	Domain = sec.Key("DOMAIN").MustString("localhost")
+	HTTPAddr = sec.Key("HTTP_ADDR").MustString("0.0.0.0")
+	HTTPPort = sec.Key("HTTP_PORT").MustString("3000")
+
+	if CustomPort != "" {
+		HTTPPort = CustomPort
 	}
-	// Suburl should start with '/' and end without '/', such as '/{subpath}'.
-	// This value is empty if site does not have sub-url.
-	AppSubURL = strings.TrimSuffix(url.Path, "/")
-	AppSubURLDepth = strings.Count(AppSubURL, "/")
 
 	Protocol = SCHEME_HTTP
 	if sec.Key("PROTOCOL").String() == "https" {
@@ -468,9 +467,50 @@ func NewContext() {
 		}
 		UnixSocketPermission = uint32(UnixSocketPermissionParsed)
 	}
-	Domain = sec.Key("DOMAIN").MustString("localhost")
-	HTTPAddr = sec.Key("HTTP_ADDR").MustString("0.0.0.0")
-	HTTPPort = sec.Key("HTTP_PORT").MustString("3000")
+
+	var localMode bool
+	var localAddress string
+	if LocalMode {
+		ip, err := getOutboundIP()
+		if err == nil {
+			localMode = true
+			localAddress = ip.String()
+		}
+	}
+
+	if localMode {
+		Domain = localAddress
+		HTTPAddr = localAddress
+		AppURL = string(Protocol) + "://" + localAddress + ":" + HTTPPort + "/"
+	} else {
+		AppURL = sec.Key("ROOT_URL").MustString("http://localhost:3000/")
+		if AppURL[len(AppURL)-1] != '/' {
+			AppURL += "/"
+		}
+
+		if CustomPort != "" {
+			AppURL = strings.Replace(AppURL, HTTPPort, CustomPort, 1)
+		}
+	}
+
+	//AppURL = sec.Key("ROOT_URL").MustString("http://localhost:3000/")
+	//if AppURL[len(AppURL)-1] != '/' {
+	//	AppURL += "/"
+	//}
+
+	// Check if has app suburl.
+	url, err := url.Parse(AppURL)
+	if err != nil {
+		log.Fatal(2, "Invalid ROOT_URL '%s': %s", AppURL, err)
+	}
+	// Suburl should start with '/' and end without '/', such as '/{subpath}'.
+	// This value is empty if site does not have sub-url.
+	AppSubURL = strings.TrimSuffix(url.Path, "/")
+	AppSubURLDepth = strings.Count(AppSubURL, "/")
+
+	//Domain = sec.Key("DOMAIN").MustString("localhost")
+	//HTTPAddr = sec.Key("HTTP_ADDR").MustString("0.0.0.0")
+	//HTTPPort = sec.Key("HTTP_PORT").MustString("3000")
 	LocalURL = sec.Key("LOCAL_ROOT_URL").MustString(string(Protocol) + "://localhost:" + HTTPPort + "/")
 	OfflineMode = sec.Key("OFFLINE_MODE").MustBool()
 	DisableRouterLog = sec.Key("DISABLE_ROUTER_LOG").MustBool()
@@ -900,4 +940,16 @@ func NewServices() {
 	newMailService()
 	newRegisterMailService()
 	newNotifyMailService()
+}
+
+func getOutboundIP() (net.IP, error) {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return nil, errors.New("cant dial to 8.8.8.8:80")
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP, nil
 }

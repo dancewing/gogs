@@ -1,0 +1,90 @@
+{{template "base/head" .}}
+<div class="repository new issue">
+	{{template "repo/header" .}}
+	<div class="ui container">
+		<div class="ui divider"></div>
+
+
+		<form class="ui comment grid" action="{{EscapePound .Link}}" method="post">
+			{{.CSRFTokenHTML}}
+			{{if .Flash}}
+			<div class="sixteen wide column">
+				{{template "base/alert" .}}
+			</div>
+			{{end}}
+			<div class="twelve wide column">
+				<div class="ui grid">
+					<div class="sixteen wide column content">
+						{{template "base/alert" .}}
+
+						<table class="ui celled table">
+							<thead>
+							<tr>
+								<th>Status</th>
+								<th>Pipeline</th>
+								<th>Commit</th>
+								<th>Stages</th>
+								<th></th>
+								<th></th>
+							</tr></thead>
+							<tbody>
+
+							{{range .Builds}}
+							<tr>
+								<td><a href="{{$.Link}}/{{.ID}}" class="ci-status ci-{{.Status}}">{{.Status}}</a></td>
+								<td><a class="title has-emoji" href="{{$.Link}}/{{.ID}}">{{.ID}}</a></td>
+								<td>Commit</td>
+								<td>
+								</td>
+								<td></td>
+								<td></td>
+							</tr>
+							{{end}}
+							</tbody>
+						</table>
+
+						{{with .Page}}
+						{{if gt .TotalPages 1}}
+						<div class="center page buttons">
+							<div class="ui borderless pagination menu">
+								<a class="{{if not .HasPrevious}}disabled{{end}} item" {{if .HasPrevious}}href="{{$.Link}}?page={{.Previous}}"{{end}}>
+									<i class="left arrow icon"></i> {{$.i18n.Tr "repo.issues.previous"}}
+								</a>
+								{{range .Pages}}
+								{{if eq .Num -1}}
+								<a class="disabled item">...</a>
+								{{else}}
+								<a class="{{if .IsCurrent}}active{{end}} item" {{if not .IsCurrent}}href="{{$.Link}}?page={{.Num}}"{{end}}>{{.Num}}</a>
+								{{end}}
+								{{end}}
+								<a class="{{if not .HasNext}}disabled{{end}} item" {{if .HasNext}}href="{{$.Link}}?page={{.Next}}"{{end}}>
+									{{$.i18n.Tr "repo.issues.next"}}&nbsp;<i class="icon right arrow"></i>
+								</a>
+							</div>
+						</div>
+						{{end}}
+						{{end}}
+
+					</div>
+				</div>
+			</div>
+
+			<div class="four wide column">
+				<div class="ui segment metas">
+
+					<div class="ui labels list">
+
+						{{range .Procs}}
+						<a class="item" id="label_{{.ID}}" href="{{$.RepoLink}}/issues?labels={{.ID}}"><span class="label color" style=""></span> <span class="text">{{.Name}}</span></a>
+						{{end}}
+					</div>
+
+
+				</div>
+			</div>
+		</form>
+
+
+	</div>
+</div>
+{{template "base/footer" .}}

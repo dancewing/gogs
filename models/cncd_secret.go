@@ -10,36 +10,21 @@ var (
 	errSecretValueInvalid = errors.New("Invalid Secret Value")
 )
 
-// SecretService defines a service for managing secrets.
-type SecretService interface {
-	SecretFind(*Repository, string) (*Secret, error)
-	SecretList(*Repository) ([]*Secret, error)
-	SecretListBuild(*Repository, *Build) ([]*Secret, error)
-	SecretCreate(*Repository, *Secret) error
-	SecretUpdate(*Repository, *Secret) error
-	SecretDelete(*Repository, string) error
-}
-
-// SecretStore persists secret information to storage.
-type SecretStore interface {
-	SecretFind(*Repository, string) (*Secret, error)
-	SecretList(*Repository) ([]*Secret, error)
-	SecretCreate(*Secret) error
-	SecretUpdate(*Secret) error
-	SecretDelete(*Secret) error
-}
-
 // Secret represents a secret variable, such as a password or token.
 // swagger:model registry
 type Secret struct {
-	ID         int64    `json:"id"              meddler:"secret_id,pk"`
-	RepoID     int64    `json:"-"               meddler:"secret_repo_id"`
-	Name       string   `json:"name"            meddler:"secret_name"`
-	Value      string   `json:"value,omitempty" meddler:"secret_value"`
-	Images     []string `json:"image"           meddler:"secret_images,json"`
-	Events     []string `json:"event"           meddler:"secret_events,json"`
-	SkipVerify bool     `json:"-"               meddler:"secret_skip_verify"`
-	Conceal    bool     `json:"-"               meddler:"secret_conceal"`
+	ID         int64    `json:"id"              `
+	RepoID     int64    `json:"-"               `
+	Name       string   `json:"name"            `
+	Value      string   `json:"value,omitempty" `
+	Images     []string `json:"-"        xorm:"JSON"`
+	Events     []string `json:"-"        xorm:"JSON"`
+	SkipVerify bool     `json:"-"               `
+	Conceal    bool     `json:"-"               `
+}
+
+func (t Secret) TableName() string {
+	return "cncd_secret"
 }
 
 // Match returns true if an image and event match the restricted list.
@@ -76,4 +61,14 @@ func (s *Secret) Copy() *Secret {
 		Images: s.Images,
 		Events: s.Events,
 	}
+}
+
+func SecretListBuild(repo *Repository) ([]*Secret, error) {
+	secs := make([]*Secret, 0)
+
+	if err := x.Where("repo_id = ? ", repo.ID).Find(&secs); err != nil {
+		return nil, err
+	}
+
+	return secs, nil
 }
