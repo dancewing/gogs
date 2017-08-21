@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/cncd/queue"
 
 	api "github.com/gogits/go-gogs-client"
@@ -234,7 +233,7 @@ func (b *cBuilder) Build() ([]*buildItem, error) {
 			),
 			compiler.WithEnviron(proc.Environ),
 			compiler.WithProxy(),
-			compiler.WithWorkspaceFromURL("/Workspace/Workshop/go/src/drone", b.Repo.Link()),
+			compiler.WithWorkspaceFromURL("/drone", b.Repo.Link()),
 			compiler.WithMetadata(metadata),
 		).Compile(parsed)
 
@@ -273,6 +272,7 @@ func PrepareCNCD(repo *Repository, event HookEventType, p api.Payloader) {
 	//tmprepo, build, err := remote_.Hook(c.Request)
 
 	if event != HOOK_EVENT_PUSH {
+		log.Error(0, "[PrepareCNCD] Event Type (%s) is not supported", event)
 		return
 	}
 
@@ -303,6 +303,7 @@ func PrepareCNCD(repo *Repository, event HookEventType, p api.Payloader) {
 	if err != nil {
 		//logrus.Errorf("error: %s: cannot find %s in %s: %s", repo.FullName, repo.Config, build.Ref, err)
 		//c.AbortWithError(404, err)
+		log.Error(0, "[PrepareCNCD] error: %s: cannot find .drone.yml in %s: %s ", repo.FullName(), build.Ref, err)
 		return
 	}
 	sha := shasum(confb)
@@ -318,7 +319,7 @@ func PrepareCNCD(repo *Repository, event HookEventType, p api.Payloader) {
 			// retry in case we receive two hooks at the same time
 			conf, err = ConfigFind(repo, sha)
 			if err != nil {
-				//logrus.Errorf("failure to find or persist build CNCDConfig for %s. %s", repo.FullName, err)
+				log.Error(0, "[PrepareCNCD] failure to find or persist build CNCDConfig for %s. %s ", repo.FullName(), err)
 				//c.AbortWithError(500, err)
 				return
 			}
@@ -327,17 +328,12 @@ func PrepareCNCD(repo *Repository, event HookEventType, p api.Payloader) {
 
 	build.ConfigID = conf.ID
 
-	//netrc, err := remote_.Netrc(user, repo)
-	//if err != nil {
-	//	c.String(500, "Failed to generate netrc file. %s", err)
-	//	return
-	//}
-
 	// verify the branches can be built vs skipped
 	branches, err := yaml.ParseString(conf.Data)
 	if err == nil {
 		if !branches.Branches.Match(build.Branch) && build.Event != EventTag && build.Event != EventDeploy {
 			//c.String(200, "Branch does not match restrictions defined in yaml")
+			log.Error(0, "[PrepareCNCD] Branch does not match restrictions defined in yaml ", nil)
 			return
 		}
 	}
@@ -347,30 +343,16 @@ func PrepareCNCD(repo *Repository, event HookEventType, p api.Payloader) {
 	build.Verified = true
 	build.Status = StatusPending
 
-	//if repo.IsGated {
-	//	allowed, _ := Config.Services.Senders.SenderAllowed(user, repo, build, conf)
-	//	if !allowed {
-	//		build.Status = model.StatusBlocked
-	//	}
-	//}
-
 	build.Trim()
 	err = CreateBuild(build, build.Procs...)
-	//if err != nil {
-	//	logrus.Errorf("failure to save commit for %s. %s", repo.FullName, err)
-	//	c.AbortWithError(500, err)
-	//	return
-	//}
-	//
-	//c.JSON(200, build)
+	if err != nil {
+		log.Error(0, "[PrepareCNCD] failure to create build and procs %s. %s", repo.FullName(), err)
+		return
+	}
 
 	if err == nil {
 		go BuildQueue.Add(repo.ID)
 	}
-
-	//if build.Status == StatusBlocked {
-	//	return
-	//}
 
 }
 
@@ -395,31 +377,29 @@ func (build *Build) deliver() {
 
 	secs, err := SecretListBuild(repo)
 	if err != nil {
-		logrus.Debugf("Error getting secrets for %s#%d. %s", repo.FullName, build.Number, err)
+		log.Error(0, "[Build.deliver] Error getting secrets for %s#%d. %s", repo.FullName(), build.Number, err)
 	}
 
 	regs, err := RegistryList(repo)
 	if err != nil {
-		logrus.Debugf("Error getting registry credentials for %s#%d. %s", repo.FullName, build.Number, err)
+		log.Error(0, "[Build.deliver] Error getting registry credentials for %s#%d. %s", repo.FullName(), build.Number, err)
 	}
 
 	// get the previous build so that we can send
 	// on status change notifications
-	last, _ := GetBuildLastBefore(repo, build.Branch, build.ID)
-
+	last, err := GetBuildLastBefore(repo, build.Branch, build.ID)
+	if err != nil {
+		log.Error(0, "[Build.deliver] Error getting last build before for %s#%d. %s", repo.FullName(), build.Number, err)
+	}
 	//
 	// BELOW: NEW
 	//
 
-	conf, _ := GetConfigByID(build.ConfigID)
-
-	defer func() {
-		//uri := fmt.Sprintf("%s/%s/%d", httputil.GetURL(c.Request), repo.FullName, build.Number)
-		//err = remote_.Status(user, repo, build, uri)
-		//if err != nil {
-		//	logrus.Errorf("error setting commit status for %s/%d", repo.FullName, build.Number)
-		//}
-	}()
+	conf, err := GetConfigByID(build.ConfigID)
+	if err != nil {
+		log.Error(0, "[Build.deliver] Error getting config data for %s#%d. %s", repo.FullName(), build.Number, err)
+		return
+	}
 
 	b := cBuilder{
 		Repo:  repo,
@@ -469,7 +449,7 @@ func (build *Build) deliver() {
 	}
 	err = ProcCreate(build.Procs)
 	if err != nil {
-		logrus.Errorf("error persisting procs %s/%d: %s", repo.FullName, build.Number, err)
+		log.Error(0, "[Build.deliver] error persisting procs %s/%d: %s", repo.FullName(), build.Number, err)
 	}
 
 	//
@@ -533,7 +513,7 @@ func DeliverBuilds() {
 
 	// Start listening on new hook requests.
 	for repoID := range BuildQueue.Queue() {
-		log.Trace("DeliverHooks [repo_id: %v]", repoID)
+		log.Trace("DeliverBuilds [repo_id: %v]", repoID)
 		BuildQueue.Remove(repoID)
 
 		builds = make([]*Build, 0, 5)
@@ -554,4 +534,3 @@ func DeliverBuilds() {
 func InitDeliverBuilds() {
 	go DeliverBuilds()
 }
-

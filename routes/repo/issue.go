@@ -373,7 +373,6 @@ func NewIssue(c *context.Context) {
 	renderAttachmentSettings(c)
 
 	RetrieveRepoMetas(c, c.Repo.Repository)
-
 	if c.Written() {
 		return
 	}
@@ -542,6 +541,7 @@ func UploadIssueAttachment(c *context.Context) {
 func viewIssue(c *context.Context, isPullList bool) {
 	c.Data["RequireHighlightJS"] = true
 	c.Data["RequireDropzone"] = true
+	c.Data["RequireDatetimepicker"] = true
 	renderAttachmentSettings(c)
 
 	index := c.ParamsInt64(":index")

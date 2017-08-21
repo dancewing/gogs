@@ -1678,6 +1678,15 @@ footer .ui.language .menu {
   max-height: 300px;
   overflow-x: auto;
 }
+.repository.new.issue .weight {
+  z-index: 99999;
+}
+.repository.new.issue .ui.selection.dropdown .menu {
+  z-index: 99999;
+}
+.repository.new.issue #deadline {
+  width: 150px;
+}
 .repository.view.issue .title {
   padding-bottom: 0!important;
 }
@@ -1902,6 +1911,9 @@ footer .ui.language .menu {
 .repository.view.issue .ui.participants img {
   margin-top: 5px;
   margin-right: 5px;
+}
+.repository.view.issue #deadline {
+  width: 150px;
 }
 .repository .comment.form .ui.comments {
   margin-top: -12px;

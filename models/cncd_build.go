@@ -67,13 +67,13 @@ func CreateBuild(build *Build, procs ...*Proc) (err error) {
 	_, err = sess.Insert(build)
 
 	if err != nil {
-		return nil
+		return err
 	}
 
 	_, err = sess.Insert(procs)
 
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return sess.Commit()
@@ -99,16 +99,11 @@ func UpdateBuild(build *Build) error {
 
 func GetBuildLastBefore(repo *Repository, branch string, num int64) (*Build, error) {
 
-	builds := make([]*Build, 0)
+	build := new(Build)
 
-	if err := x.Where("repo_id = ? and branch = ? and id < ?", repo.ID, branch, num).Limit(1, 0).Find(&builds); err != nil {
-		return nil, err
-	}
+	_, err := x.Where("repo_id = ? and branch = ? and id < ?", repo.ID, branch, num).Limit(1, 0).Get(build)
 
-	if len(builds) > 0 {
-		return builds[0], nil
-	}
-	return nil, nil
+	return build, err
 }
 
 func CountBuild(repositoryID int64) int64 {

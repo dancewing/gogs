@@ -171,10 +171,6 @@ type Repository struct {
 	IsMirror bool
 	*Mirror  `xorm:"-"`
 
-	GitInitialized  bool
-	ParentProjectID int64
-	ParentProject   *Repository `xorm:"-"`
-
 	// Advanced settings
 	EnableWiki            bool `xorm:"NOT NULL DEFAULT true"`
 	AllowPublicWiki       bool
@@ -689,8 +685,6 @@ func MigrateRepository(doer, owner *User, opts MigrateRepoOptions) (*Repository,
 	} else {
 		repo.NumWatches = 1
 	}
-
-	repo.GitInitialized = true
 
 	migrateTimeout := time.Duration(setting.Git.Timeout.Migrate) * time.Second
 
@@ -1586,22 +1580,6 @@ func GetUserRepositories(opts *UserRepoOptions) ([]*Repository, error) {
 	sess.Limit(opts.PageSize, (opts.Page-1)*opts.PageSize)
 
 	repos := make([]*Repository, 0, opts.PageSize)
-	return repos, sess.Find(&repos)
-}
-
-// GetUserAllRepositories returns a list of repositories of given user.
-func GetUserAllRepositories(opts *UserRepoOptions) ([]*Repository, error) {
-	sess := x.Where("owner_id=?", opts.UserID).Desc("updated_unix")
-	if !opts.Private {
-		sess.And("is_private=?", false)
-	}
-
-	// if opts.Page <= 0 {
-	// 	opts.Page = 1
-	// }
-	//sess.Limit(opts.PageSize, (opts.Page-1)*opts.PageSize)
-	count, _ := x.Count(new(Repository))
-	repos := make([]*Repository, 0, count)
 	return repos, sess.Find(&repos)
 }
 

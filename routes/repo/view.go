@@ -237,11 +237,6 @@ func setEditorconfigIfExists(c *context.Context) {
 func Home(c *context.Context) {
 	c.Data["PageIsViewFiles"] = true
 
-	if !c.Repo.Repository.GitInitialized {
-		c.HTML(200, GIT_NOT_INITIALIZED)
-		return
-	}
-
 	if c.Repo.Repository.IsBare {
 		c.HTML(200, BARE)
 		return

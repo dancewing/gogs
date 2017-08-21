@@ -117,5 +117,37 @@
 				</div>
 			</div>
 		</div>
+
+		<div class="ui segment metas">
+			<div class="field {{if .Err_IssueWeight}}error{{end}}">
+				<label>
+					{{.i18n.Tr "repo.issue.weight"}}
+				</label>
+				<select name="weight" class="ui dropdown weight">
+					<option value="0">No Weight</option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+				</select>
+			</div>
+			<div class="field {{if .Err_Deadline}}error{{end}}">
+				<label>
+					{{.i18n.Tr "repo.milestones.due_date"}}
+					<a id="clear-date" href="#">{{.i18n.Tr "repo.milestones.clear"}}</a>
+				</label>
+				<input id="deadline" name="deadline" value="{{.deadline}}">
+			</div>
+			<div class="field">
+				<input class="issue datepicker" data-lang="{{.DateLang}}" data-start-date="{{.deadline}}">
+			</div>
+		</div>
+
 	</div>
 </form>

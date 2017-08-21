@@ -764,6 +764,9 @@ func TriggerTask(c *context.Context) {
 	log.Trace("TriggerTask '%s/%s' by '%s'", repo.Name, branch, pusher.Name)
 
 	go models.HookQueue.Add(repo.ID)
+	go models.ServiceQueue.Add(repo.ID)
+	go models.BuildQueue.Add(repo.ID)
+
 	go models.AddTestPullRequestTask(pusher, repo.ID, branch, true)
 	c.Status(202)
 }

@@ -480,7 +480,6 @@ func NewContext() {
 
 	if localMode {
 		Domain = localAddress
-		HTTPAddr = localAddress
 		AppURL = string(Protocol) + "://" + localAddress + ":" + HTTPPort + "/"
 	} else {
 		AppURL = sec.Key("ROOT_URL").MustString("http://localhost:3000/")

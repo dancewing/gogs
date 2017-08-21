@@ -382,6 +382,24 @@ function initRepository() {
         });
     }
 
+	if ($('.repository.new.issue').length > 0) {
+		var $datepicker = $('.issue.datepicker');
+		$datepicker.datetimepicker({
+			lang: $datepicker.data('lang'),
+			inline: true,
+			timepicker: false,
+			startDate: $datepicker.data('start-date'),
+			formatDate: 'Y-m-d',
+			onSelectDate: function (ct) {
+				$('#deadline').val(ct.dateFormat('Y-m-d'));
+			}
+		});
+		$('#clear-date').click(function () {
+			$('#deadline').val('');
+			return false;
+		});
+	}
+
     // Issues
     if ($('.repository.view.issue').length > 0) {
         // Edit issue title
@@ -415,7 +433,7 @@ function initRepository() {
             return false;
         });
 
-		var $datepicker = $('.milestone.datepicker');
+		var $datepicker = $('.issue.datepicker');
 		$datepicker.datetimepicker({
 			lang: $datepicker.data('lang'),
 			inline: true,

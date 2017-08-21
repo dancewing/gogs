@@ -11,20 +11,6 @@
 		{{.i18n.Tr "repo.release.loading"}}
 	</div>
 </div>
-<div class="field">
-	<div class="four wide column">
-		<div class="field {{if .Err_Deadline}}error{{end}}">
-			<label>
-				{{.i18n.Tr "repo.milestones.due_date"}}
-				<a id="clear-date" href="#">{{.i18n.Tr "repo.milestones.clear"}}</a>
-			</label>
-			<input id="deadline" name="deadline" value="{{.deadline}}">
-		</div>
-		<div class="field">
-			<input class="milestone datepicker" data-lang="{{.DateLang}}" data-start-date="{{.deadline}}">
-		</div>
-	</div>
-</div>
 {{if .IsAttachmentEnabled}}
 	<div class="files"></div>
 	<div class="ui basic button dropzone" id="dropzone" data-upload-url="{{AppSubURL}}/issues/attachments" data-accepts="{{.AttachmentAllowedTypes}}" data-max-file="{{.AttachmentMaxFiles}}" data-max-size="{{.AttachmentMaxSize}}" data-default-message="{{.i18n.Tr "dropzone.default_message"}}" data-invalid-input-type="{{.i18n.Tr "dropzone.invalid_input_type"}}" data-file-too-big="{{.i18n.Tr "dropzone.file_too_big"}}" data-remove-file="{{.i18n.Tr "dropzone.remove_file"}}"></div>
