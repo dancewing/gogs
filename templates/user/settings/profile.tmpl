@@ -35,7 +35,14 @@
 							<label for="location">{{.i18n.Tr "settings.location"}}</label>
 							<input id="location" name="location"  value="{{.location}}">
 						</div>
-
+						<div class="field">
+							<label for="langKey">{{.i18n.Tr "settings.language"}}</label>
+							<select id="langKey" name="lang_key" class="ui dropdown">
+								{{range .AllLangs}}
+								<option class="item {{if eq $.lang_key .Lang}}active selected{{end}}" value="{{.Lang}}">{{.Name}}</option>
+								{{end}}
+							</select>
+						</div>
 						<div class="field">
 							<button class="ui green button">{{$.i18n.Tr "settings.update_profile"}}</button>
 						</div>

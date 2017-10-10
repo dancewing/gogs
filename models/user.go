@@ -62,6 +62,7 @@ type User struct {
 	Website     string
 	Rands       string `xorm:"VARCHAR(10)"`
 	Salt        string `xorm:"VARCHAR(10)"`
+	LangKey     string `xorm:"VARCHAR(10)"`
 
 	Created     time.Time `xorm:"-"`
 	CreatedUnix int64

@@ -213,6 +213,14 @@ module.exports = function (grunt) {
                         dest: 'public/js/board',
                         filter: 'isFile'
                     },
+					{
+						flatten: true,
+						expand: true,
+						cwd: 'node_modules/font-awesome/css/',
+						src: 'font-awesome.min.css',
+						dest: 'public/css/',
+						filter: 'isFile'
+					},
                     {
                         flatten: true,
                         expand: true,

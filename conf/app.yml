@@ -1,0 +1,259 @@
+admin:
+  disable_regular_org_creation: false
+api:
+  max_response_items: 50
+attachment:
+  allowed_types: image/jpeg|image/png
+  enabled: true
+  max_files: 5
+  max_size: 4
+  path: data/attachments
+cache:
+  adapter: memory
+  host: ""
+  interval: 60
+cron:
+  check_repo_stats:
+    run_at_start: true
+    schedule: '@every 24h'
+  enabled: true
+  repo_archive_cleanup:
+    older_than: 24h
+    run_at_start: false
+    schedule: '@every 24h'
+  repo_health_check:
+    args: ""
+    schedule: '@every 24h'
+    timeout: 60s
+  run_at_start: false
+  update_mirrors:
+    schedule: '@every 10m'
+database:
+  db_type: mysql
+  host: 127.0.0.1:3306
+  name: gogs
+  passwd: ""
+  path: data/gogs.db
+  ssl_mode: disable
+  user: root
+git:
+  disable_diff_highlight: false
+  gc_args: ""
+  max_git_diff_files: 100
+  max_git_diff_line_characters: 500
+  max_git_diff_lines: 1000
+  timeout:
+    clone: 300
+    gc: 60
+    migrate: 600
+    mirror: 300
+    pull: 300
+global:
+  app_name: Gogs
+  run_mode: dev
+  run_user: git
+http:
+  access_control_allow_origin: ""
+i18n:
+  datelang:
+    bg-bg: bg
+    cs-cz: cs-CZ
+    de-de: de
+    en-us: en
+    es-es: es
+    fi-fi: fi
+    fr-fr: fr
+    gl-es: gl
+    it-it: it
+    ja-jp: ja
+    ko-kr: ko
+    lv-lv: lv
+    nl-nl: nl
+    pl-pl: pl
+    pt-br: pt-BR
+    ru-ru: ru
+    sr-sp: sr
+    sv-se: sv
+    tr-tr: tr
+    uk-ua: uk
+    zh-cn: zh
+    zh-hk: zh-TW
+    zh-tw: zh-TW
+  langs: en-US,zh-CN,zh-HK,zh-TW,de-DE,fr-FR,nl-NL,lv-LV,ru-RU,ja-JP,es-ES,pt-BR,pl-PL,bg-BG,it-IT,fi-FI,tr-TR,cs-CZ,sr-SP,sv-SE,ko-KR,gl-ES,uk-UA,en-GB,hu-HU
+  names: English,简体中文,繁體中文（香港）,繁體中文（台湾）,Deutsch,français,Nederlands,latviešu,русский,日本語,español,português
+    do Brasil,polski,български,italiano,suomi,Türkçe,čeština,српски,svenska,한국어,galego,українська,English
+    (United Kingdom),Magyar
+log:
+  buffer_len: 100
+  console:
+    level: ""
+  file:
+    daily_rotate: true
+    level: ""
+    log_rotate: true
+    max_days: 7
+    max_lines: 1000000
+    max_size_shift: 28
+  level: Trace
+  mode: console
+  root_path: ""
+  slack:
+    level: ""
+    url: ""
+  xorm:
+    max_days: 3
+    max_size: 100
+    rotate: true
+    rotate_daily: true
+mailer:
+  cert_file: custom/mailer/cert.pem
+  disable_helo: ""
+  enabled: false
+  from: ""
+  helo_hostname: ""
+  host: ""
+  key_file: custom/mailer/key.pem
+  passwd: ""
+  send_buffer_len: 100
+  skip_verify: ""
+  subject: Gogs
+  use_certificate: false
+  use_plain_text: false
+  user: ""
+markdown:
+  custom_url_schemes: ""
+  enable_hard_line_break: false
+  file_extensions: .md,.markdown,.mdown,.mkd
+mirror:
+  default_interval: 8
+other:
+  show_footer_branding: false
+  show_footer_template_load_time: true
+  show_footer_version: true
+picture:
+  avatar_upload_path: data/avatars
+  disable_gravatar: false
+  enable_federated_avatar: true
+  gravatar_source: gravatar
+release:
+  attachment:
+    allowed_types: '*/*'
+    enabled: true
+    max_files: 10
+    max_size: 32
+    path: data/attachments
+repository:
+  ansi_charset: ""
+  commits_fetch_concurrency: 0
+  disable_http_git: false
+  editor:
+    line_wrap_extensions: .txt,.md,.markdown,.mdown,.mkd,
+    previewable_file_modes: markdown
+  enable_local_path_migration: false
+  enable_raw_file_render_mode: false
+  force_private: false
+  max_creation_limit: -1
+  mirror_queue_length: 1000
+  preferred_licenses: Apache License 2.0,MIT License
+  pull_request_queue_length: 1000
+  root: ""
+  script_type: bash
+  upload:
+    allowed_types: ""
+    enabled: true
+    file_max_size: 3
+    max_files: 5
+    temp_path: data/tmp/uploads
+security:
+  cookie_remember_name: gogs_incredible
+  cookie_secure: false
+  cookie_username: gogs_awesome
+  enable_login_status_cookie: false
+  install_lock: false
+  login_remember_days: 7
+  login_status_cookie_name: login_status
+  reverse_proxy_authentication_user: X-WEBAUTH-USER
+  secret_key: '!'
+server:
+  app_data_path: data
+  cert_file: custom/https/cert.pem
+  disable_router_log: false
+  disable_ssh: false
+  domain: localhost
+  enable_gzip: false
+  http_addr: 0.0.0.0
+  http_port: 3000
+  key_file: custom/https/key.pem
+  landing_page: home
+  local_root_url: http://0.0.0.0:3000/
+  minimum_key_size_check: false
+  offline_mode: false
+  protocol: http
+  root_url: http://localhost:3000/
+  ssh_domain: localhost
+  ssh_key_test_path: ""
+  ssh_keygen_path: ssh-keygen
+  ssh_listen_host: 0.0.0.0
+  ssh_listen_port: 22
+  ssh_port: 22
+  ssh_root_path: ""
+  ssh_server_ciphers: aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com,
+    arcfour256, arcfour128
+  start_ssh_server: false
+  static_root_path: ""
+  tls_min_version: TLS10
+  unix_socket_permission: 666
+service:
+  active_code_live_minutes: 180
+  disable_registration: false
+  enable_captcha: true
+  enable_notify_mail: false
+  enable_reverse_proxy_authentication: false
+  enable_reverse_proxy_auto_registration: false
+  register_email_confirm: false
+  require_signin_view: false
+  reset_passwd_code_live_minutes: 180
+session:
+  cookie_name: i_like_gogits
+  cookie_secure: false
+  csrf_cookie_name: _csrf
+  enable_set_cookie: true
+  gc_interval_time: 3600
+  provider: memory
+  provider_config: data/sessions
+  session_life_time: 86400
+smartypants:
+  angled_quotes: true
+  dashes: true
+  enabled: false
+  fractions: true
+  latex_dashes: true
+ssh:
+  minimum_key_sizes:
+    dsa: 1024
+    ecdsa: 256
+    ed25519: 256
+    rsa: 2048
+time:
+  format: ""
+ui:
+  admin:
+    notice_paging_num: 25
+    org_paging_num: 50
+    repo_paging_num: 50
+    user_paging_num: 50
+  explore_paging_num: 20
+  feed_max_commit_num: 5
+  issue_paging_num: 10
+  max_display_file_size: 8388608
+  theme_color_meta_tag: '#ff5343'
+  user:
+    commits_paging_num: 30
+    news_feed_paging_num: 20
+    repo_paging_num: 15
+webhook:
+  deliver_timeout: 15
+  paging_num: 10
+  queue_length: 1000
+  skip_tls_verify: false
+  types: gogs, slack, discord, jenkins

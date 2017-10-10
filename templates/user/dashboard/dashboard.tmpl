@@ -3,13 +3,13 @@
 	{{template "user/dashboard/navbar" .}}
 	<div class="ui container">
 		<div class="ui grid">
-			<div class="ten wide column">
+			<div class="twelve wide column">
 				{{template "user/dashboard/feeds" .}}
 				{{if .AfterID}}
 					<button class="ui fluid basic button center ajax-load-button" data-url="{{.Link}}?after_id={{.AfterID}}">More</button>
 				{{end}}
 			</div>
-			<div class="six wide column">
+			<div class="four wide column">
 				<div class="ui {{if not .ContextUser.IsOrganization}}three{{else}}two{{end}} item tabable menu">
 					<a class="item active" data-tab="repos">{{.i18n.Tr "repository"}}</a>
 					{{if not .ContextUser.IsOrganization}}

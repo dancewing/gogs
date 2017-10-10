@@ -50,12 +50,17 @@ func (c *APIContext) SetLinkHeader(total, pageSize int) {
 	if page.HasNext() {
 		links = append(links, fmt.Sprintf("<%s%s?page=%d>; rel=\"next\"", setting.AppURL, c.Req.URL.Path[1:], page.Next()))
 	}
-	if !page.IsLast() {
-		links = append(links, fmt.Sprintf("<%s%s?page=%d>; rel=\"last\"", setting.AppURL, c.Req.URL.Path[1:], page.TotalPages()))
-	}
-	if !page.IsFirst() {
-		links = append(links, fmt.Sprintf("<%s%s?page=1>; rel=\"first\"", setting.AppURL, c.Req.URL.Path[1:]))
-	}
+	//if !page.IsLast() {
+	//	links = append(links, fmt.Sprintf("<%s%s?page=%d>; rel=\"last\"", setting.AppURL, c.Req.URL.Path[1:], page.TotalPages()))
+	//}
+	//if !page.IsFirst() {
+	//	links = append(links, fmt.Sprintf("<%s%s?page=1>; rel=\"first\"", setting.AppURL, c.Req.URL.Path[1:]))
+	//}
+
+			links = append(links, fmt.Sprintf("<%s%s?page=%d>; rel=\"last\"", setting.AppURL, c.Req.URL.Path[1:], page.TotalPages()))
+
+			links = append(links, fmt.Sprintf("<%s%s?page=1>; rel=\"first\"", setting.AppURL, c.Req.URL.Path[1:]))
+
 	if page.HasPrevious() {
 		links = append(links, fmt.Sprintf("<%s%s?page=%d>; rel=\"prev\"", setting.AppURL, c.Req.URL.Path[1:], page.Previous()))
 	}
@@ -63,6 +68,7 @@ func (c *APIContext) SetLinkHeader(total, pageSize int) {
 	if len(links) > 0 {
 		c.Header().Set("Link", strings.Join(links, ","))
 	}
+	c.Header().Set("X-Total-Count", fmt.Sprintf("%d", total))
 }
 
 func APIContexter() macaron.Handler {

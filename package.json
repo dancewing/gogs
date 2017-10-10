@@ -34,6 +34,7 @@
     "markdown-it": "=5.0.2",
     "markdown-it-emoji": "=1.1.0",
     "ng-sortable": "=1.3.6",
+    "octicons": "^6.0.1",
     "sass-flex-mixin": "=1.0.3",
     "twemoji": "^2.3.0"
   }

@@ -96,6 +96,7 @@ type UpdateProfile struct {
 	Email    string `binding:"Required;Email;MaxSize(254)"`
 	Website  string `binding:"Url;MaxSize(100)"`
 	Location string `binding:"MaxSize(50)"`
+	LangKey  string `binding:"MaxSize(10)"`
 }
 
 func (f *UpdateProfile) Validate(ctx *macaron.Context, errs binding.Errors) binding.Errors {

@@ -52,6 +52,7 @@ func Settings(c *context.Context) {
 	c.Data["email"] = c.User.Email
 	c.Data["website"] = c.User.Website
 	c.Data["location"] = c.User.Location
+	c.Data["lang_key"] = c.User.LangKey
 	c.Success(SETTINGS_PROFILE)
 }
 
@@ -102,6 +103,7 @@ func SettingsPost(c *context.Context, f form.UpdateProfile) {
 	c.User.Email = f.Email
 	c.User.Website = f.Website
 	c.User.Location = f.Location
+	c.User.LangKey = f.LangKey
 	if err := models.UpdateUser(c.User); err != nil {
 		c.ServerError("UpdateUser", err)
 		return

@@ -33,6 +33,7 @@ import (
 	"github.com/gogits/gogs/pkg/bindata"
 	"github.com/gogits/gogs/pkg/process"
 	"github.com/gogits/gogs/pkg/user"
+	"gopkg.in/yaml.v2"
 )
 
 type Scheme string
@@ -79,6 +80,8 @@ var (
 	EnableGzip           bool
 	LandingPageURL       LandingPage
 	UnixSocketPermission uint32
+
+	SettingData *Data
 
 	HTTP struct {
 		AccessControlAllowOrigin string
@@ -405,6 +408,14 @@ func NewContext() {
 	workDir, err := WorkDir()
 	if err != nil {
 		log.Fatal(2, "Fail to get work directory: %v", err)
+	}
+
+	SettingData = &Data{}
+
+	err = yaml.Unmarshal(bindata.MustAsset("conf/app.yml"), SettingData)
+
+	if err != nil {
+		log.Fatal(2, "Fail to convert setting from conf/app.yml: %v", err)
 	}
 
 	Cfg, err = ini.Load(bindata.MustAsset("conf/app.ini"))
